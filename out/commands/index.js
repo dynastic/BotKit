@@ -131,5 +131,4 @@ exports.default = CommandSystem;
 __export(require("./util"));
 __export(require("./guards"));
 __export(require("./errors"));
-__export(require("./commands"));
 //# sourceMappingURL=index.js.map

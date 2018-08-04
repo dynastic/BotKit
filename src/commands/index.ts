@@ -140,5 +140,4 @@ export default class CommandSystem {
 export * from "./util";
 export * from "./guards";
 export * from "./errors";
-export * from "./commands";
 export * from "./api";
