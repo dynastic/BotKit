@@ -21,7 +21,9 @@ exports.ROLES = { moderator: [], admin: [], root: [] };
 function applyPatches(patches) {
     exports.COMMAND_PREFIX = patches.commandPrefix || exports.COMMAND_PREFIX;
     exports.ERROR_RENDER_FORMAT = patches.errorFormat || exports.ERROR_RENDER_FORMAT;
-    exports.ROLES = patches.roles || exports.ROLES;
+    if (patches.roles) {
+        Object.assign(exports.ROLES, patches.roles);
+    }
 }
 exports.applyPatches = applyPatches;
 //# sourceMappingURL=Constants.js.map

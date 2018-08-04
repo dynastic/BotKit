@@ -16,11 +16,11 @@ export declare class CommandError {
     readonly text: string;
     readonly render: string | RichEmbed;
     static readonly FORBIDDEN: CommandError;
-    static GENERIC({tracking, code}: {
+    static GENERIC({ tracking, code }: {
         tracking?: string;
         code?: string;
     }): CommandError;
-    static BOT_MISSING_PERMISSIONS({tracking, permissions}: {
+    static BOT_MISSING_PERMISSIONS({ tracking, permissions }: {
         tracking?: string;
         permissions?: string[];
     }): CommandError;

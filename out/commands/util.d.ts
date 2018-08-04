@@ -6,7 +6,7 @@ export declare enum AccessLevel {
     EVERYONE = "global",
     MODERATOR = "moderator",
     ADMIN = "admin",
-    ROOT = "root",
+    ROOT = "root"
 }
 declare module 'discord.js' {
     interface GuildMember {
@@ -113,7 +113,7 @@ export declare namespace CommandUtils {
      *
      * @param param0 the commands to flatten
      */
-    function flatten({opts, commands}: Commands): Promise<Command[]>;
+    function flatten({ opts, commands }: Commands): Promise<Command[]>;
     /**
      * Parses a POJSO and converts it to an array of commands
      *

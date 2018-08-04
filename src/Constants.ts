@@ -31,5 +31,7 @@ export let ROLES: RoleOptions = {moderator: [], admin: [], root: []};
 export function applyPatches(patches: Partial<{commandPrefix: string, errorFormat: ErrorFormat, roles: RoleOptions}>) {
     COMMAND_PREFIX = patches.commandPrefix || COMMAND_PREFIX;
     ERROR_RENDER_FORMAT = patches.errorFormat || ERROR_RENDER_FORMAT;
-    ROLES = patches.roles || ROLES;
+    if (patches.roles) {
+        Object.assign(ROLES, patches.roles);
+    }
 }
