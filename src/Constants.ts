@@ -26,12 +26,21 @@ export enum ErrorFormat {
 
 export let ERROR_RENDER_FORMAT: ErrorFormat = ErrorFormat.EMBED;
 
-export let ROLES: RoleOptions = {moderator: [], admin: [], root: []};
+export const ROLES: RoleOptions = {moderator: [], admin: [], root: []};
+
+export const ROLES_INCLUSIVE: RoleOptions = {moderator: [], admin: [], root: []};
 
 export function applyPatches(patches: Partial<{commandPrefix: string, errorFormat: ErrorFormat, roles: RoleOptions}>) {
     COMMAND_PREFIX = patches.commandPrefix || COMMAND_PREFIX;
     ERROR_RENDER_FORMAT = patches.errorFormat || ERROR_RENDER_FORMAT;
     if (patches.roles) {
         Object.assign(ROLES, patches.roles);
+        const roles = ROLES;
+
+        const moderator: {[key: string]: boolean} = {}, admin: {[key: string]: boolean} = {}, root: {[key: string]: boolean} = {};
+        for (let rootID of roles.root) moderator[rootID] = admin[rootID] = root[rootID] = true;
+        for (let adminID of roles.admin) moderator[adminID] = admin[adminID] = true;
+        for (let moderatorID of roles.moderator) moderator[moderatorID] = true;
+        Object.assign(ROLES_INCLUSIVE, {moderator, admin, root});
     }
 }

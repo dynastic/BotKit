@@ -2,7 +2,7 @@ import { Collection, Guild, GuildMember, Message, MessageOptions, User } from 'd
 
 import Application from '..';
 import { AccessLevel, specializeEmbed } from './util';
-import { ROLES } from '../Constants';
+import { ROLES, ROLES_INCLUSIVE } from '../Constants';
 
 const mentionRegex = /⦗<@\d+>⦘/g;
 
@@ -47,18 +47,10 @@ Message.prototype.edit = function(this: Message, content?: any, options?: Messag
     return oldEdit.call(this, content, options);
 };
 
-const roles = ROLES;
-
-const moderator: {[key: string]: boolean} = {}, admin: {[key: string]: boolean} = {}, root: {[key: string]: boolean} = {};
-for (let rootID of roles.root) moderator[rootID] = admin[rootID] = root[rootID] = true;
-for (let adminID of roles.admin) moderator[adminID] = admin[adminID] = true;
-for (let moderatorID of roles.moderator) moderator[moderatorID] = true;
-const roleList = {moderator, admin, root};
-
 GuildMember.prototype.hasAccess = async function(this: GuildMember, commandName: string | AccessLevel) {
     const verify = (role: "moderator" | "admin" | "root") => {
         for (let [,{id}] of this.roles) {
-            if (roleList[role][id]) return true;
+            if (ROLES_INCLUSIVE[role][id]) return true;
         }
         return false;
     }

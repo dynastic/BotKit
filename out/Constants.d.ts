@@ -15,7 +15,8 @@ export declare enum ErrorFormat {
     TEXT = 1
 }
 export declare let ERROR_RENDER_FORMAT: ErrorFormat;
-export declare let ROLES: RoleOptions;
+export declare const ROLES: RoleOptions;
+export declare const ROLES_INCLUSIVE: RoleOptions;
 export declare function applyPatches(patches: Partial<{
     commandPrefix: string;
     errorFormat: ErrorFormat;

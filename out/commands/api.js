@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const __1 = __importDefault(require(".."));
 const util_1 = require("./util");
-const Constants_1 = require("../Constants");
 const mentionRegex = /⦗<@\d+>⦘/g;
 /**
  * Preserves or adds the user mention string when editing a message
@@ -43,15 +42,6 @@ discord_js_1.Message.prototype.edit = function (content, options) {
     content = patches.content, options = patches.options;
     return oldEdit.call(this, content, options);
 };
-const roles = Constants_1.ROLES;
-const moderator = {}, admin = {}, root = {};
-for (let rootID of roles.root)
-    moderator[rootID] = admin[rootID] = root[rootID] = true;
-for (let adminID of roles.admin)
-    moderator[adminID] = admin[adminID] = true;
-for (let moderatorID of roles.moderator)
-    moderator[moderatorID] = true;
-const roleList = { moderator, admin, root };
 discord_js_1.GuildMember.prototype.hasAccess = async function (commandName) {
     const verify = (role) => {
         for (let [, { id }] of this.roles) {
