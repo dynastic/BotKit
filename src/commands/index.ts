@@ -79,6 +79,10 @@ export default class CommandSystem {
             if (!message.app) {
                 message.app = options.app;
             }
+
+            if (!message.data) {
+                message.data = {};
+            }
         });
     }
 

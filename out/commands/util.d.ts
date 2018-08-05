@@ -76,6 +76,12 @@ declare module 'discord.js' {
          * Whether this message is executing a command
          */
         isCommand: boolean;
+        /**
+         * Command data store
+         */
+        data: {
+            [key: string]: any;
+        };
     }
 }
 export interface CommandHandler {
