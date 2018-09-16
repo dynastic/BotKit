@@ -16,18 +16,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const Constants = __importStar(require("./Constants"));
 const commands_1 = __importDefault(require("./commands"));
-process.on("unhandledRejection", e => console.error(e));
 class Application {
     constructor(options) {
         this.options = options;
         this.data = {};
-        if (Application.singleton)
-            throw new Error("Only one Application can be instantiated per runtime.");
-        Application.singleton = this;
         Constants.applyPatches(options);
     }
     async init() {
         this.client = new discord_js_1.Client();
+        this.client.botkit = this;
         await this.client.login(this.options.token);
         this.commandSystem = new commands_1.default({ directory: this.options.commandDirectory, app: this, roles: this.options.roles });
         await this.commandSystem.init();

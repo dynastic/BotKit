@@ -17,7 +17,6 @@ export default class Application {
     private options;
     readonly client: Client;
     readonly commandSystem: CommandSystem;
-    static readonly singleton: Application;
     data: {
         [key: string]: any;
     };

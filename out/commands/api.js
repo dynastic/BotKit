@@ -1,10 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
-const __1 = __importDefault(require(".."));
 const util_1 = require("./util");
 const Constants_1 = require("../Constants");
 const mentionRegex = /⦗<@\d+>⦘/g;
@@ -57,7 +53,7 @@ discord_js_1.GuildMember.prototype.hasAccess = async function (commandName) {
             return true;
         return verify(access.toLowerCase());
     }
-    const command = __1.default.singleton.commandSystem.commands[commandName];
+    const command = this.client.botkit.commandSystem.commands[commandName];
     if (!command)
         return false;
     const access = command.opts.access || util_1.AccessLevel.EVERYONE;
@@ -69,7 +65,7 @@ discord_js_1.GuildMember.prototype.hasAccess = async function (commandName) {
     }
 };
 discord_js_1.User.prototype.hasAccess = async function (commandName) {
-    const command = __1.default.singleton.commandSystem.commands[commandName];
+    const command = this.client.botkit.commandSystem.commands[commandName];
     if (!command)
         return false;
     let access = command.opts.access || util_1.AccessLevel.EVERYONE;

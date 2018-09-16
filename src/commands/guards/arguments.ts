@@ -139,11 +139,14 @@ export const Argumented: (command: string, desc: string, args: Array<ArgumentSDK
         };
     }
 
-    // sets the command metadata for the help command
-    Application.singleton.commandSystem.metadata[command] = {syntax, description};
-
     return async (message, next) => {
         // every idx of the issues array corresponds to idx of args array
+
+        // sets the command metadata for the help command
+        if (!message.client.botkit.commandSystem.metadata[command]) {
+            message.client.botkit.commandSystem.metadata[command] = {syntax, description};
+        }
+
         const issues: Array<string | null> = [];
         let error: boolean = false;
         for (let i = 0; i < validators.length; i++) {

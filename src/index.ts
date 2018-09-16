@@ -16,23 +16,19 @@ export interface ApplicationOptions {
     roles: RoleOptions;
 }
 
-process.on("unhandledRejection", e => console.error(e));
-
 export default class Application {
     public readonly client: Client;
     public readonly commandSystem: CommandSystem;
-    public static readonly singleton: Application;
 
     public data: {[key: string]: any} = {};
 
     public constructor(private options: ApplicationOptions) {
-        if (Application.singleton) throw new Error("Only one Application can be instantiated per runtime.");
-        (Application as any).singleton = this;
         Constants.applyPatches(options as any);
     }
 
     public async init(): Promise<void> {
         (this as any).client = new Client();
+        this.client.botkit = this;
         await this.client.login(this.options.token);
 
         (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this, roles: this.options.roles});

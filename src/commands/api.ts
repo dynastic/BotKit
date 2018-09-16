@@ -59,7 +59,7 @@ GuildMember.prototype.hasAccess = async function(this: GuildMember, commandName:
         if (access === AccessLevel.EVERYONE) return true;
         return verify(access.toLowerCase());
     }
-    const command = Application.singleton.commandSystem.commands[commandName];
+    const command = this.client.botkit.commandSystem.commands[commandName];
     if (!command) return false;
     const access = command.opts.access || AccessLevel.EVERYONE;
     switch (access) {
@@ -71,7 +71,7 @@ GuildMember.prototype.hasAccess = async function(this: GuildMember, commandName:
 }
 
 User.prototype.hasAccess = async function(this: User, commandName: string) {
-    const command = Application.singleton.commandSystem.commands[commandName];
+    const command = this.client.botkit.commandSystem.commands[commandName];
     if (!command) return false;
 
     let access = command.opts.access || AccessLevel.EVERYONE;
