@@ -1,13 +1,14 @@
 import { RoleOptions } from ".";
-export declare const SUCCESS_EMOJI = "\uD83C\uDD97";
-export declare const FAIL_EMOJI = "\u274C";
-export declare const WARNING_EMOJI = "\u26A0";
-export declare const DELETE_EMOJI = "\uD83D\uDDD1";
+export declare let SUCCESS_EMOJI: string;
+export declare let FAIL_EMOJI: string;
+export declare let WARNING_EMOJI: string;
+export declare let DELETE_EMOJI: string;
 export declare let COMMAND_PREFIX: string;
-export declare const ARGUMENT_REGEX: RegExp;
-export declare const DYNASTIC_ICON = "https://assets.dynastic.co/brand/img/icon-64.png";
-export declare const TEMP_DIR = "/tmp/bot-downloads";
-export declare const COLORS: {
+export declare let ARGUMENT_REGEX: RegExp;
+export declare let BOT_ICON: string;
+export declare let BOT_AUTHOR: string;
+export declare let TEMP_DIR: string;
+export declare let COLORS: {
     DANGER: number;
 };
 export declare enum ErrorFormat {
@@ -15,10 +16,23 @@ export declare enum ErrorFormat {
     TEXT = 1
 }
 export declare let ERROR_RENDER_FORMAT: ErrorFormat;
-export declare const ROLES: RoleOptions;
-export declare const ROLES_INCLUSIVE: RoleOptions;
-export declare function applyPatches(patches: Partial<{
-    commandPrefix: string;
-    errorFormat: ErrorFormat;
-    roles: RoleOptions;
-}>): void;
+export declare let ROLES: RoleOptions;
+export declare let ROLES_INCLUSIVE: RoleOptions;
+export interface PatchableConstants {
+    SUCCESS_EMOJI: string;
+    FAIL_EMOJI: string;
+    WARNING_EMOJI: string;
+    DELETE_EMOJI: string;
+    COMMAND_PREFIX: string;
+    ARGUMENT_REGEX: string;
+    BOT_ICON: string;
+    BOT_AUTHOR: string;
+    TEMP_DIR: string;
+    COLORS: {
+        DANGER: number;
+        [key: string]: number;
+    };
+    ERROR_RENDER_FORMAT: ErrorFormat;
+    ROLES: RoleOptions;
+}
+export declare function applyPatches(patches: Partial<PatchableConstants>): void;

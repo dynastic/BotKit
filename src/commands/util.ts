@@ -5,7 +5,7 @@ import path, { resolve } from "path";
 import {Collection, Guild, Message, RichEmbed, RichEmbedOptions} from "discord.js";
 import {CommandError} from "./errors";
 import Application from "..";
-import { DYNASTIC_ICON } from "../Constants";
+import { BOT_ICON, BOT_AUTHOR } from "../Constants";
 
 export enum AccessLevel {
     EVERYONE = "global",
@@ -259,7 +259,7 @@ export namespace CommandUtils {
 }
 
 export const specializeEmbed = (embed: RichEmbed | RichEmbedOptions) => {
-    if (embed instanceof RichEmbed) embed.setFooter("Dynastic", DYNASTIC_ICON);
-    else embed.footer = {text: "Dynastic", icon_url: DYNASTIC_ICON};
+    if (embed instanceof RichEmbed) embed.setFooter(BOT_AUTHOR, BOT_ICON);
+    else embed.footer = {text: BOT_AUTHOR, icon_url: BOT_ICON};
     return embed;
 };

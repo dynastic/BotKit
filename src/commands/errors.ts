@@ -1,5 +1,5 @@
 import {RichEmbed} from "discord.js";
-import { COLORS, DYNASTIC_ICON, ERROR_RENDER_FORMAT, ErrorFormat } from "../Constants";
+import { COLORS, BOT_ICON, ERROR_RENDER_FORMAT, ErrorFormat } from "../Constants";
 import { specializeEmbed } from "./util";
 
 export interface CommandErrorOptions {

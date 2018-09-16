@@ -144,9 +144,9 @@ var CommandUtils;
 })(CommandUtils = exports.CommandUtils || (exports.CommandUtils = {}));
 exports.specializeEmbed = (embed) => {
     if (embed instanceof discord_js_1.RichEmbed)
-        embed.setFooter("Dynastic", Constants_1.DYNASTIC_ICON);
+        embed.setFooter("Dynastic", Constants_1.BOT_ICON);
     else
-        embed.footer = { text: "Dynastic", icon_url: Constants_1.DYNASTIC_ICON };
+        embed.footer = { text: "Dynastic", icon_url: Constants_1.BOT_ICON };
     return embed;
 };
 //# sourceMappingURL=util.js.map

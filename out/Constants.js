@@ -6,7 +6,8 @@ exports.WARNING_EMOJI = '⚠';
 exports.DELETE_EMOJI = '🗑';
 exports.COMMAND_PREFIX = '*';
 exports.ARGUMENT_REGEX = /[^'"\s]+|(?:["'])([^'"]+)(?:["'])/g;
-exports.DYNASTIC_ICON = "https://assets.dynastic.co/brand/img/icon-64.png";
+exports.BOT_ICON = "https://assets.dynastic.co/brand/img/icon-64.png";
+exports.BOT_AUTHOR = "Dynastic";
 exports.TEMP_DIR = "/tmp/bot-downloads";
 exports.COLORS = {
     DANGER: 0xff895e
@@ -19,20 +20,22 @@ var ErrorFormat;
 exports.ERROR_RENDER_FORMAT = ErrorFormat.EMBED;
 exports.ROLES = { moderator: [], admin: [], root: [] };
 exports.ROLES_INCLUSIVE = { moderator: [], admin: [], root: [] };
+function recalculateInclusiveRoles() {
+    const moderator = {}, admin = {}, root = {};
+    for (let rootID of exports.ROLES.root)
+        moderator[rootID] = admin[rootID] = root[rootID] = true;
+    for (let adminID of exports.ROLES.admin)
+        moderator[adminID] = admin[adminID] = true;
+    for (let moderatorID of exports.ROLES.moderator)
+        moderator[moderatorID] = true;
+    Object.assign(exports.ROLES_INCLUSIVE, { moderator, admin, root });
+}
 function applyPatches(patches) {
-    exports.COMMAND_PREFIX = patches.commandPrefix || exports.COMMAND_PREFIX;
-    exports.ERROR_RENDER_FORMAT = patches.errorFormat || exports.ERROR_RENDER_FORMAT;
-    if (patches.roles) {
-        Object.assign(exports.ROLES, patches.roles);
-        const roles = exports.ROLES;
-        const moderator = {}, admin = {}, root = {};
-        for (let rootID of roles.root)
-            moderator[rootID] = admin[rootID] = root[rootID] = true;
-        for (let adminID of roles.admin)
-            moderator[adminID] = admin[adminID] = true;
-        for (let moderatorID of roles.moderator)
-            moderator[moderatorID] = true;
-        Object.assign(exports.ROLES_INCLUSIVE, { moderator, admin, root });
+    for (let key in patches) {
+        eval(`exports.${key} = patches.${key} || exports.${key}`);
+    }
+    if (patches.ROLES) {
+        recalculateInclusiveRoles();
     }
 }
 exports.applyPatches = applyPatches;
