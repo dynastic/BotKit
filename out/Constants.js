@@ -28,12 +28,14 @@ function recalculateInclusiveRoles() {
         moderator[adminID] = admin[adminID] = true;
     for (let moderatorID of exports.ROLES.moderator)
         moderator[moderatorID] = true;
-    Object.assign(exports.ROLES_INCLUSIVE, { moderator, admin, root });
+    exports.ROLES_INCLUSIVE = { moderator: Object.keys(moderator), admin: Object.keys(admin), root: Object.keys(root) };
 }
 function applyPatches(patches) {
+    let script = "";
     for (let key in patches) {
-        eval(`exports.${key} = patches.${key} || exports.${key}`);
+        script += `exports.${key} = patches.${key} || exports.${key};`;
     }
+    eval(script);
     if (patches.ROLES) {
         recalculateInclusiveRoles();
     }
