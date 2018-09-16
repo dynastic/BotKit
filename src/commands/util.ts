@@ -256,10 +256,10 @@ export namespace CommandUtils {
             next();
         });
     }
-}
 
-export const specializeEmbed = (embed: RichEmbed | RichEmbedOptions) => {
-    if (embed instanceof RichEmbed) embed.setFooter(BOT_AUTHOR, BOT_ICON);
-    else embed.footer = {text: BOT_AUTHOR, icon_url: BOT_ICON};
-    return embed;
-};
+    export const specializeEmbed = (embed: RichEmbed | RichEmbedOptions) => {
+        if (embed instanceof RichEmbed) embed.setFooter(BOT_AUTHOR, BOT_ICON);
+        else embed.footer = {text: BOT_AUTHOR, icon_url: BOT_ICON};
+        return embed;
+    };
+}

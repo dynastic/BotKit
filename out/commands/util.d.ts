@@ -134,5 +134,5 @@ export declare namespace CommandUtils {
     function loadDirectory(dir: string): Promise<Command[]>;
     function prependMiddleware(commands: Command[], ...middleware: CommandHandler[]): Promise<void>;
     function executeMiddleware(message: Message, middleware: CommandHandler[]): Promise<void>;
+    const specializeEmbed: (embed: RichEmbed | RichEmbedOptions) => RichEmbed | RichEmbedOptions;
 }
-export declare const specializeEmbed: (embed: RichEmbed | RichEmbedOptions) => RichEmbed | RichEmbedOptions;

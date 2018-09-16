@@ -35,8 +35,9 @@ class Application {
         });
     }
 }
+exports.Application = Application;
 exports.default = Application;
-__export(require("./Constants"));
+exports.Constants = require("./Constants");
 __export(require("./util"));
 __export(require("./db"));
 __export(require("./commands"));

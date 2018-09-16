@@ -3,13 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const Constants_1 = require("../Constants");
 const util_1 = require("./util");
-exports.ERROR_PREFIX = "**Uh oh!**";
 class CommandError {
     constructor(options) {
         this.options = options;
         options.title = options.title || "Something went wrong";
         if (options.errorPrefix !== false) {
-            options.message = `${exports.ERROR_PREFIX} ${options.message}`;
+            options.message = `${Constants_1.ERROR_PREFIX} ${options.message}`;
         }
     }
     get embed() {
@@ -17,7 +16,7 @@ class CommandError {
         embed.setTitle(this.options.title);
         embed.setDescription(this.options.message);
         embed.setColor(Constants_1.COLORS.DANGER);
-        util_1.specializeEmbed(embed);
+        util_1.CommandUtils.specializeEmbed(embed);
         if (this.options.code || this.options.tracking) {
             embed.setAuthor(`${this.options.code ? `${this.options.code} | ` : ''}${this.options.tracking ? `Error ID: ${this.options.tracking}` : ''}`);
         }

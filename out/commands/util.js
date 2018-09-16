@@ -141,12 +141,12 @@ var CommandUtils;
         });
     }
     CommandUtils.executeMiddleware = executeMiddleware;
+    CommandUtils.specializeEmbed = (embed) => {
+        if (embed instanceof discord_js_1.RichEmbed)
+            embed.setFooter(Constants_1.BOT_AUTHOR, Constants_1.BOT_ICON);
+        else
+            embed.footer = { text: Constants_1.BOT_AUTHOR, icon_url: Constants_1.BOT_ICON };
+        return embed;
+    };
 })(CommandUtils = exports.CommandUtils || (exports.CommandUtils = {}));
-exports.specializeEmbed = (embed) => {
-    if (embed instanceof discord_js_1.RichEmbed)
-        embed.setFooter(Constants_1.BOT_AUTHOR, Constants_1.BOT_ICON);
-    else
-        embed.footer = { text: Constants_1.BOT_AUTHOR, icon_url: Constants_1.BOT_ICON };
-    return embed;
-};
 //# sourceMappingURL=util.js.map

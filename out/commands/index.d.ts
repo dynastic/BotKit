@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import * as CommandUtil from "./util";
 import Application, { RoleOptions } from "..";
+import * as Guards from "./guards";
 export interface CommandSystemOptions {
     directory: string;
     app: Application;
@@ -24,6 +25,6 @@ export default class CommandSystem {
     executeCommand(message: Message): Promise<void>;
 }
 export * from "./util";
-export * from "./guards";
+export { Guards };
 export * from "./errors";
 export * from "./api";

@@ -32,6 +32,8 @@ export let ROLES: RoleOptions = {moderator: [], admin: [], root: []};
 
 export let ROLES_INCLUSIVE: RoleOptions = {moderator: [], admin: [], root: []};
 
+export const ERROR_PREFIX = "**Uh oh!**";
+
 export interface PatchableConstants {
     SUCCESS_EMOJI: string;
     FAIL_EMOJI: string;
@@ -48,6 +50,7 @@ export interface PatchableConstants {
     };
     ERROR_RENDER_FORMAT: ErrorFormat;
     ROLES: RoleOptions;
+    ERROR_PREFIX: string;
 }
 
 function recalculateInclusiveRoles() {

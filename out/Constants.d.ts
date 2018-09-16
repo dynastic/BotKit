@@ -18,6 +18,7 @@ export declare enum ErrorFormat {
 export declare let ERROR_RENDER_FORMAT: ErrorFormat;
 export declare let ROLES: RoleOptions;
 export declare let ROLES_INCLUSIVE: RoleOptions;
+export declare const ERROR_PREFIX = "**Uh oh!**";
 export interface PatchableConstants {
     SUCCESS_EMOJI: string;
     FAIL_EMOJI: string;
@@ -34,5 +35,6 @@ export interface PatchableConstants {
     };
     ERROR_RENDER_FORMAT: ErrorFormat;
     ROLES: RoleOptions;
+    ERROR_PREFIX: string;
 }
 export declare function applyPatches(patches: Partial<PatchableConstants>): void;

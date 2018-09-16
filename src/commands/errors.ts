@@ -1,6 +1,6 @@
 import {RichEmbed} from "discord.js";
-import { COLORS, BOT_ICON, ERROR_RENDER_FORMAT, ErrorFormat } from "../Constants";
-import { specializeEmbed } from "./util";
+import { COLORS, BOT_ICON, ERROR_PREFIX, ERROR_RENDER_FORMAT, ErrorFormat } from "../Constants";
+import { CommandUtils } from "./util";
 
 export interface CommandErrorOptions {
     message: string;
@@ -10,8 +10,6 @@ export interface CommandErrorOptions {
     errorPrefix?: boolean;
     render?: ErrorFormat;
 }
-
-export const ERROR_PREFIX = "**Uh oh!**";
 
 export class CommandError {
     public constructor(private options: CommandErrorOptions) {
@@ -26,7 +24,7 @@ export class CommandError {
         embed.setTitle(this.options.title);
         embed.setDescription(this.options.message);
         embed.setColor(COLORS.DANGER);
-        specializeEmbed(embed);
+        CommandUtils.specializeEmbed(embed);
         if (this.options.code || this.options.tracking) {
             embed.setAuthor(`${this.options.code ? `${this.options.code} | ` : ''}${this.options.tracking ? `Error ID: ${this.options.tracking}` : ''}`);
         }

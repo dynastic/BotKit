@@ -16,7 +16,7 @@ export interface ApplicationOptions {
     roles: RoleOptions;
 }
 
-export default class Application {
+export class Application {
     public readonly client: Client;
     public readonly commandSystem: CommandSystem;
 
@@ -41,7 +41,9 @@ export default class Application {
     }
 }
 
-export * from "./Constants";
+export default Application;
+
+export import Constants = require("./Constants");
 export * from "./util";
 export * from "./db";
 export * from "./commands";

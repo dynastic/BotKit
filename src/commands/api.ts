@@ -1,7 +1,7 @@
 import { Collection, Guild, GuildMember, Message, MessageOptions, User } from 'discord.js';
 
 import Application from '..';
-import { AccessLevel, specializeEmbed } from './util';
+import { AccessLevel, CommandUtils } from './util';
 import { ROLES, ROLES_INCLUSIVE } from '../Constants';
 
 const mentionRegex = /⦗<@\d+>⦘/g;
@@ -26,7 +26,7 @@ const update: (message: Message, content?: any, options?: MessageOptions) => {co
     content = `${tag}${content}`;
 
     if (options!.embed) {
-        specializeEmbed(options!.embed!);
+        CommandUtils.specializeEmbed(options!.embed!);
     }
 
     return {content, options};

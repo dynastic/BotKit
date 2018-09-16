@@ -8,7 +8,6 @@ export interface CommandErrorOptions {
     errorPrefix?: boolean;
     render?: ErrorFormat;
 }
-export declare const ERROR_PREFIX = "**Uh oh!**";
 export declare class CommandError {
     private options;
     constructor(options: CommandErrorOptions);

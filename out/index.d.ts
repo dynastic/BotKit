@@ -13,7 +13,7 @@ export interface ApplicationOptions {
     errorFormat?: Constants.ErrorFormat;
     roles: RoleOptions;
 }
-export default class Application {
+export declare class Application {
     private options;
     readonly client: Client;
     readonly commandSystem: CommandSystem;
@@ -23,7 +23,8 @@ export default class Application {
     constructor(options: ApplicationOptions);
     init(): Promise<void>;
 }
-export * from "./Constants";
+export default Application;
+export import Constants = require("./Constants");
 export * from "./util";
 export * from "./db";
 export * from "./commands";

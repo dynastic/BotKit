@@ -18,6 +18,8 @@ const Constants_1 = require("../Constants");
 const path_1 = __importDefault(require("path"));
 const errors_1 = require("./errors");
 const guards_1 = require("./guards");
+const Guards = __importStar(require("./guards"));
+exports.Guards = Guards;
 const stripStartEnd = (token, str) => {
     if (str.startsWith(token) && str.endsWith(token))
         str = str.substring(token.length, str.length - token.length);
@@ -132,6 +134,5 @@ class CommandSystem {
 }
 exports.default = CommandSystem;
 __export(require("./util"));
-__export(require("./guards"));
 __export(require("./errors"));
 //# sourceMappingURL=index.js.map

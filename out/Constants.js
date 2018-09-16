@@ -20,6 +20,7 @@ var ErrorFormat;
 exports.ERROR_RENDER_FORMAT = ErrorFormat.EMBED;
 exports.ROLES = { moderator: [], admin: [], root: [] };
 exports.ROLES_INCLUSIVE = { moderator: [], admin: [], root: [] };
+exports.ERROR_PREFIX = "**Uh oh!**";
 function recalculateInclusiveRoles() {
     const moderator = {}, admin = {}, root = {};
     for (let rootID of exports.ROLES.root)

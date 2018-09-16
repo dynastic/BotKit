@@ -24,7 +24,7 @@ const update = (message, content, options) => {
     const tag = match && match[0] || `⦗<@${message.author.id}>⦘`;
     content = `${tag}${content}`;
     if (options.embed) {
-        util_1.specializeEmbed(options.embed);
+        util_1.CommandUtils.specializeEmbed(options.embed);
     }
     return { content, options };
 };

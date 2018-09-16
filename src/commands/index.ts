@@ -7,6 +7,8 @@ import {CommandError} from "./errors";
 import Application, { RoleOptions } from "..";
 import { PermissionGuard } from "./guards";
 
+import * as Guards from "./guards";
+
 export interface CommandSystemOptions {
     directory: string;
     app: Application;
@@ -142,6 +144,6 @@ export default class CommandSystem {
 }
 
 export * from "./util";
-export * from "./guards";
+export { Guards }
 export * from "./errors";
 export * from "./api";
