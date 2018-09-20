@@ -4,8 +4,8 @@
   "main": "out/index.js",
   "repository": "https://github.com/dynastic/bot.git",
   "author": "Dynastic Development <hello@dynastic.co>",
-  "license": "MIT",
-  "private": true,
+  "license": "AGPLv3",
+  "private": false,
   "dependencies": {
     "biguint-format": "^1.0.0",
     "bufferutil": "^3.0.3",
