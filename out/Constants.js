@@ -21,6 +21,9 @@ exports.ERROR_RENDER_FORMAT = ErrorFormat.EMBED;
 exports.ROLES = { moderator: [], admin: [], root: [] };
 exports.ROLES_INCLUSIVE = { moderator: [], admin: [], root: [] };
 exports.ERROR_PREFIX = "**Uh oh!**";
+/**
+ * Recomputes the inheritence-based role list
+ */
 function recalculateInclusiveRoles() {
     const moderator = {}, admin = {}, root = {};
     for (let rootID of exports.ROLES.root)
@@ -31,6 +34,10 @@ function recalculateInclusiveRoles() {
         moderator[moderatorID] = true;
     exports.ROLES_INCLUSIVE = { moderator: Object.keys(moderator), admin: Object.keys(admin), root: Object.keys(root) };
 }
+/**
+ * Applies patches to BotKit constants
+ * @param patches the patches to apply
+ */
 function applyPatches(patches) {
     let script = "";
     for (let key in patches) {

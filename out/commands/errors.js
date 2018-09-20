@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const Constants_1 = require("../Constants");
 const util_1 = require("./util");
+/**
+ * An error class that can be thrown by commands and guards which are rendered to the client
+ */
 class CommandError {
     constructor(options) {
         this.options = options;
@@ -11,6 +14,9 @@ class CommandError {
             options.message = `${Constants_1.ERROR_PREFIX} ${options.message}`;
         }
     }
+    /**
+     * An embed render of the error
+     */
     get embed() {
         const embed = new discord_js_1.RichEmbed();
         embed.setTitle(this.options.title);
@@ -22,6 +28,9 @@ class CommandError {
         }
         return embed;
     }
+    /**
+     * A plaintext render of the error
+     */
     get text() {
         let message = `**${this.options.title}**\n${this.options.message}`;
         if (this.options.code || this.options.tracking) {
@@ -35,6 +44,9 @@ class CommandError {
         }
         return message;
     }
+    /**
+     * Determines which render to return based on the options or constant
+     */
     get render() {
         return (this.options.render || Constants_1.ERROR_RENDER_FORMAT) === Constants_1.ErrorFormat.EMBED ? this.embed : this.text;
     }

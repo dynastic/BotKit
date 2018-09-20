@@ -11,6 +11,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const util_1 = require("../util");
+/**
+ * An enhanced base class for database entities
+ */
 class DBEntity extends typeorm_1.BaseEntity {
     get openedOnUnix() {
         return Math.floor(this.openedOn.getTime() / 1000);

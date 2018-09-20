@@ -1,4 +1,7 @@
 import { BaseEntity, ObjectType, DeepPartial } from "typeorm";
+/**
+ * An enhanced base class for database entities
+ */
 export declare class DBEntity extends BaseEntity {
     id: string;
     openedOn: Date;

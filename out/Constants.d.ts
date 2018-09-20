@@ -37,4 +37,8 @@ export interface PatchableConstants {
     ROLES: RoleOptions;
     ERROR_PREFIX: string;
 }
+/**
+ * Applies patches to BotKit constants
+ * @param patches the patches to apply
+ */
 export declare function applyPatches(patches: Partial<PatchableConstants>): void;
