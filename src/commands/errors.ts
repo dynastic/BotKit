@@ -11,6 +11,9 @@ export interface CommandErrorOptions {
     render?: ErrorFormat;
 }
 
+/**
+ * An error class that can be thrown by commands and guards which are rendered to the client
+ */
 export class CommandError {
     public constructor(private options: CommandErrorOptions) {
         options.title = options.title || "Something went wrong";
@@ -19,6 +22,9 @@ export class CommandError {
         }
     }
 
+    /**
+     * An embed render of the error
+     */
     public get embed(): RichEmbed {
         const embed = new RichEmbed();
         embed.setTitle(this.options.title);
@@ -31,6 +37,9 @@ export class CommandError {
         return embed;
     }
 
+    /**
+     * A plaintext render of the error
+     */
     public get text(): string {
         let message = `**${this.options.title}**\n${this.options.message}`;
         if (this.options.code || this.options.tracking) {
@@ -42,6 +51,9 @@ export class CommandError {
         return message;
     }
 
+    /**
+     * Determines which render to return based on the options or constant
+     */
     public get render(): string | RichEmbed {
         return (this.options.render || ERROR_RENDER_FORMAT) === ErrorFormat.EMBED ? this.embed : this.text;
     }

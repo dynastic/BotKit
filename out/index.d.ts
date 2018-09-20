@@ -7,20 +7,42 @@ export interface RoleOptions {
     root: string[];
 }
 export interface ApplicationOptions {
-    token: string;
-    commandDirectory: string;
-    commandPrefix?: string;
-    errorFormat?: Constants.ErrorFormat;
-    roles: RoleOptions;
+    /**
+     * discord token. required unless you pass a client which has already been logged-in
+     */
+    token?: string;
+    /**
+     * discord client. if not passed, the application will create one.
+     */
+    client?: Client;
+    /**
+     * directory to load command files from
+     */
+    commandDirectory?: string;
+    /**
+     * message prefix for commands
+     */
+    COMMAND_PREFIX?: string;
+    /**
+     * whether to render errors in plaintext or embeds
+     */
+    ERROR_RENDER_FORMAT?: Constants.ErrorFormat;
+    /**
+     * permission roles
+     */
+    ROLES?: RoleOptions;
 }
+/**
+ * Initializes the framework
+ */
 export declare class Application {
     private options;
     readonly client: Client;
     readonly commandSystem: CommandSystem;
-    data: {
-        [key: string]: any;
-    };
     constructor(options: ApplicationOptions);
+    /**
+     * Sets the Discord client up and loads the command system
+     */
     init(): Promise<void>;
 }
 export default Application;

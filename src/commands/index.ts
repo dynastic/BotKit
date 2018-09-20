@@ -63,6 +63,9 @@ export default class CommandSystem {
         });
     }
 
+    /**
+     * Loads commands into the tracking system
+     */
     public async init(): Promise<void> {
         let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory) : [];
         commands = commands.concat(await CommandUtil.CommandUtils.parse(require(path.resolve(__dirname, "commands"))));
@@ -78,6 +81,10 @@ export default class CommandSystem {
         }
     }
 
+    /**
+     * Executes the command initiated by the message
+     * @param message the message initiating a command
+     */
     public async executeCommand(message: Message): Promise<void> {
         const sendError = async (error: any) => {
             if (!error) return;

@@ -53,6 +53,9 @@ export interface PatchableConstants {
     ERROR_PREFIX: string;
 }
 
+/**
+ * Recomputes the inheritence-based role list
+ */
 function recalculateInclusiveRoles() {
     const moderator: {[key: string]: boolean} = {}, admin: {[key: string]: boolean} = {}, root: {[key: string]: boolean} = {};
     for (let rootID of ROLES.root) moderator[rootID] = admin[rootID] = root[rootID] = true;
@@ -61,6 +64,10 @@ function recalculateInclusiveRoles() {
     ROLES_INCLUSIVE = {moderator: Object.keys(moderator), admin: Object.keys(admin), root: Object.keys(root)};
 }
 
+/**
+ * Applies patches to BotKit constants
+ * @param patches the patches to apply
+ */
 export function applyPatches(patches: Partial<PatchableConstants>) {
     let script = "";
     for (let key in patches) {

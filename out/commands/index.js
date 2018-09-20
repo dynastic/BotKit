@@ -25,31 +25,25 @@ const stripStartEnd = (token, str) => {
         str = str.substring(token.length, str.length - token.length);
     return str;
 };
+/**
+ * A system which loads and tracks commands
+ */
 class CommandSystem {
     constructor(options) {
         this.options = options;
         this.commands = {};
+        /**
+         * Command metadata, for help etc.
+         */
         this.metadata = {};
+        /**
+         * Guards to run on all commands
+         */
         this.globalGuards = [];
         this.globalGuards = [];
         options.app.client.on("message", message => {
             if (typeof message.isCommand === "undefined") {
                 message.isCommand = message.content.startsWith(Constants_1.COMMAND_PREFIX);
-            }
-            if (!message.complete) {
-                message.success = message.done = message.complete = function () {
-                    return this.react(Constants_1.SUCCESS_EMOJI);
-                };
-            }
-            if (!message.warning) {
-                message.danger = message.caution = message.warning = function () {
-                    return this.react(Constants_1.WARNING_EMOJI);
-                };
-            }
-            if (!message.fail) {
-                message.fail = function () {
-                    return this.react(Constants_1.FAIL_EMOJI);
-                };
             }
             if (!message.args && message.isCommand) {
                 message.args = message.content.substring(Constants_1.COMMAND_PREFIX.length).trim().match(Constants_1.ARGUMENT_REGEX);
@@ -62,22 +56,13 @@ class CommandSystem {
                 message.command = options.app.commandSystem.commands[message.args[0]];
                 message.args.shift();
             }
-            if (!message.reject) {
-                message.reject = function (error) {
-                    const { render } = error || errors_1.CommandError.GENERIC({});
-                    return this.reply(typeof render === "string" ? render : "", { embed: typeof render === "object" ? render : undefined });
-                };
-            }
-            if (!message.app) {
-                message.app = options.app;
-            }
-            if (!message.data) {
-                message.data = {};
-            }
         });
     }
+    /**
+     * Loads commands into the tracking system
+     */
     async init() {
-        let commands = await CommandUtil.CommandUtils.loadDirectory(this.options.directory);
+        let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory) : [];
         commands = commands.concat(await CommandUtil.CommandUtils.parse(require(path_1.default.resolve(__dirname, "commands"))));
         await CommandUtil.CommandUtils.prependMiddleware(commands, guards_1.PermissionGuard);
         for (let command of commands) {
@@ -89,6 +74,10 @@ class CommandSystem {
             }
         }
     }
+    /**
+     * Executes the command initiated by the message
+     * @param message the message initiating a command
+     */
     async executeCommand(message) {
         const sendError = async (error) => {
             if (!error)

@@ -1,6 +1,9 @@
 import { BaseEntity, PrimaryColumn, ObjectType, DeepPartial, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Security } from "../util";
 
+/**
+ * An enhanced base class for database entities
+ */
 export class DBEntity extends BaseEntity {
     @PrimaryColumn()
     id: string;

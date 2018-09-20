@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const util_1 = require("./util");
 const Constants_1 = require("../Constants");
+const errors_1 = require("./errors");
 const mentionRegex = /⦗<@\d+>⦘/g;
 /**
  * Preserves or adds the user mention string when editing a message
@@ -39,6 +40,20 @@ discord_js_1.Message.prototype.edit = function (content, options) {
     content = patches.content, options = patches.options;
     return oldEdit.call(this, content, options);
 };
+discord_js_1.Message.prototype.complete = discord_js_1.Message.prototype.success = discord_js_1.Message.prototype.done = function () {
+    return this.react(Constants_1.SUCCESS_EMOJI);
+};
+discord_js_1.Message.prototype.warning = discord_js_1.Message.prototype.danger = discord_js_1.Message.prototype.caution = function () {
+    return this.react(Constants_1.FAIL_EMOJI);
+};
+discord_js_1.Message.prototype.fail = function () {
+    return this.react(Constants_1.FAIL_EMOJI);
+};
+discord_js_1.Message.prototype.reject = function (error) {
+    const { render } = error || errors_1.CommandError.GENERIC({});
+    return this.reply(typeof render === "string" ? render : "", { embed: typeof render === "object" ? render : undefined });
+};
+discord_js_1.Message.prototype.data = {};
 discord_js_1.GuildMember.prototype.hasAccess = async function (commandName) {
     const verify = (role) => {
         for (let [, { id }] of this.roles) {

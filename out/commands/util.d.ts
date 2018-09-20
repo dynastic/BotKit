@@ -1,7 +1,6 @@
 import "./api";
 import { Message, RichEmbed, RichEmbedOptions } from "discord.js";
 import { CommandError } from "./errors";
-import Application from "..";
 export declare enum AccessLevel {
     EVERYONE = "global",
     MODERATOR = "moderator",
@@ -68,10 +67,6 @@ declare module 'discord.js' {
          * The command being executd by this message
          */
         command: Command;
-        /**
-         * The app
-         */
-        app: Application;
         /**
          * Whether this message is executing a command
          */

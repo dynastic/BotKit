@@ -19,11 +19,11 @@ exports.HelpCommand = {
         const [specificCommand] = message.args;
         // command manpage
         if (specificCommand) {
-            const command = message.app.commandSystem.commands[specificCommand];
+            const command = message.client.botkit.commandSystem.commands[specificCommand];
             if (!command) {
                 return next(new errors_1.CommandError({ message: "That command does not exist." }));
             }
-            const metadata = message.app.commandSystem.metadata[command.opts.name];
+            const metadata = message.client.botkit.commandSystem.metadata[command.opts.name];
             if (!metadata || (!metadata.description && !metadata.syntax)) {
                 return next(new errors_1.CommandError({ message: "There's no additional help data for this command." }));
             }
@@ -38,7 +38,7 @@ exports.HelpCommand = {
             return;
         }
         const commands = {};
-        const loadedCommands = message.app.commandSystem.commands;
+        const loadedCommands = message.client.botkit.commandSystem.commands;
         for (let commandName in loadedCommands) {
             if (!(await (message.member || message.author).hasAccess(commandName)))
                 continue;
@@ -80,7 +80,7 @@ exports.EvalCommand = {
     handler: async (message, next) => {
         const context = {
             message,
-            app: message.app,
+            app: message.client.botkit,
             args: message.args,
             author: message.author,
             channel: message.channel,
