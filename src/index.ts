@@ -9,29 +9,58 @@ export interface RoleOptions {
 }
 
 export interface ApplicationOptions {
-    token: string;
-    commandDirectory: string;
-    commandPrefix?: string;
-    errorFormat?: Constants.ErrorFormat;
-    roles: RoleOptions;
+    /**
+     * discord token. required unless you pass a client which has already been logged-in
+     */
+    token?: string;
+    /**
+     * discord client. if not passed, the application will create one.
+     */
+    client?: Client;
+    /**
+     * directory to load command files from
+     */
+    commandDirectory?: string;
+    /**
+     * message prefix for commands
+     */
+    COMMAND_PREFIX?: string;
+    /**
+     * whether to render errors in plaintext or embeds
+     */
+    ERROR_RENDER_FORMAT?: Constants.ErrorFormat;
+    /**
+     * permission roles
+     */
+    ROLES?: RoleOptions;
 }
 
+/**
+ * Initializes the framework
+ */
 export class Application {
     public readonly client: Client;
     public readonly commandSystem: CommandSystem;
 
-    public data: {[key: string]: any} = {};
-
     public constructor(private options: ApplicationOptions) {
-        Constants.applyPatches(options as any);
+        Constants.applyPatches({
+            COMMAND_PREFIX: options.COMMAND_PREFIX,
+            ERROR_RENDER_FORMAT: options.ERROR_RENDER_FORMAT,
+            ROLES: options.ROLES
+        });
     }
 
+    /**
+     * Sets the Discord client up and loads the command system
+     */
     public async init(): Promise<void> {
-        (this as any).client = new Client();
+        (this as any).client = this.options.client || new Client();
         this.client.botkit = this;
-        await this.client.login(this.options.token);
+        if (!this.client.readyTimestamp) {
+            await this.client.login(this.options.token);
+        }
 
-        (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this, roles: this.options.roles});
+        (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this});
         await this.commandSystem.init();
 
         this.client.on("message", message => {

@@ -10,9 +10,8 @@ import { PermissionGuard } from "./guards";
 import * as Guards from "./guards";
 
 export interface CommandSystemOptions {
-    directory: string;
+    directory?: string;
     app: Application;
-    roles: RoleOptions;
 }
 
 const stripStartEnd = (token: string, str: string) => {
@@ -27,10 +26,19 @@ export interface CommandMetadata {
     } | undefined;
 }
 
+/**
+ * A system which loads and tracks commands
+ */
 export default class CommandSystem {
     public commands: {[key: string]: CommandUtil.Command | undefined} = {};
+    /**
+     * Command metadata, for help etc.
+     */
     public metadata: CommandMetadata = {};
     
+    /**
+     * Guards to run on all commands
+     */
     private readonly globalGuards: CommandUtil.CommandHandler[] = [];
 
     public constructor(private options: CommandSystemOptions) {
@@ -38,24 +46,6 @@ export default class CommandSystem {
         options.app.client.on("message", message => {
             if (typeof message.isCommand === "undefined") {
                 message.isCommand = message.content.startsWith(COMMAND_PREFIX);
-            }
-
-            if (!message.complete) {
-                message.success = message.done = message.complete = function(this: Message) {
-                    return this.react(SUCCESS_EMOJI) as any as Promise<void>;
-                }
-            }
-
-            if (!message.warning) {
-                message.danger = message.caution = message.warning = function(this: Message) {
-                    return this.react(WARNING_EMOJI) as any as Promise<void>;
-                }
-            }
-        
-            if (!message.fail) {
-                message.fail = function(this: Message) {
-                    return this.react(FAIL_EMOJI) as any as Promise<void>;
-                }
             }
         
             if (!message.args && message.isCommand) {
@@ -70,26 +60,11 @@ export default class CommandSystem {
                 message.command = options.app.commandSystem.commands[message.args[0]]!;
                 message.args.shift();
             }
-        
-            if (!message.reject) {
-                message.reject = function(this: Message, error) {
-                    const {render} = error || CommandError.GENERIC({});
-                    return this.reply(typeof render === "string" ? render : "", {embed: typeof render === "object" ? render : undefined}) as any as Promise<void>;
-                }
-            }
-        
-            if (!message.app) {
-                message.app = options.app;
-            }
-
-            if (!message.data) {
-                message.data = {};
-            }
         });
     }
 
     public async init(): Promise<void> {
-        let commands = await CommandUtil.CommandUtils.loadDirectory(this.options.directory);
+        let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory) : [];
         commands = commands.concat(await CommandUtil.CommandUtils.parse(require(path.resolve(__dirname, "commands"))));
         await CommandUtil.CommandUtils.prependMiddleware(commands, PermissionGuard);
 

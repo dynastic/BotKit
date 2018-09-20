@@ -2,7 +2,8 @@ import { Collection, Guild, GuildMember, Message, MessageOptions, User } from 'd
 
 import Application from '..';
 import { AccessLevel, CommandUtils } from './util';
-import { ROLES, ROLES_INCLUSIVE } from '../Constants';
+import { ROLES, ROLES_INCLUSIVE, SUCCESS_EMOJI, FAIL_EMOJI } from '../Constants';
+import { CommandError } from './errors';
 
 const mentionRegex = /⦗<@\d+>⦘/g;
 
@@ -46,6 +47,25 @@ Message.prototype.edit = function(this: Message, content?: any, options?: Messag
 
     return oldEdit.call(this, content, options);
 };
+
+Message.prototype.complete = Message.prototype.success = Message.prototype.done = function(this: Message) {
+    return this.react(SUCCESS_EMOJI) as any as Promise<void>;
+}
+
+Message.prototype.warning = Message.prototype.danger = Message.prototype.caution = function(this: Message) {
+    return this.react(FAIL_EMOJI) as any as Promise<void>;
+}
+
+Message.prototype.fail = function(this: Message) {
+    return this.react(FAIL_EMOJI) as any as Promise<void>;
+}
+
+Message.prototype.reject = function(this: Message, error) {
+    const {render} = error || CommandError.GENERIC({});
+    return this.reply(typeof render === "string" ? render : "", {embed: typeof render === "object" ? render : undefined}) as any as Promise<void>;
+}
+
+Message.prototype.data = {};
 
 GuildMember.prototype.hasAccess = async function(this: GuildMember, commandName: string | AccessLevel) {
     const verify = (role: "moderator" | "admin" | "root") => {

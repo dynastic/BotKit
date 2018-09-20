@@ -77,10 +77,6 @@ declare module 'discord.js' {
          */
         command: Command;
         /**
-         * The app
-         */
-        app: Application;
-        /**
          * Whether this message is executing a command
          */
         isCommand: boolean;
