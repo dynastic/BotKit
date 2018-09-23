@@ -20,6 +20,11 @@ export interface ApplicationOptions {
      */
     commandDirectory?: string;
     /**
+     * whether or not command categories should default to their parent folder name.
+     * default is false
+     */
+    automaticCategoryNames?: boolean;
+    /**
      * message prefix for commands
      */
     COMMAND_PREFIX?: string;

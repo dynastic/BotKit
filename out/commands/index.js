@@ -66,7 +66,7 @@ class CommandSystem {
      * Loads commands into the tracking system
      */
     async init() {
-        let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory) : [];
+        let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory, this.options.automaticCategoryNames) : [];
         commands = commands.concat(await CommandUtil.CommandUtils.parse(require(path_1.default.resolve(__dirname, "commands"))));
         await CommandUtil.CommandUtils.prependMiddleware(commands, guards_1.PermissionGuard);
         for (let command of commands) {

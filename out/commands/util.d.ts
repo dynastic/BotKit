@@ -126,7 +126,7 @@ export declare namespace CommandUtils {
      *
      * @param dir the path to the directory
      */
-    function loadDirectory(dir: string): Promise<Command[]>;
+    function loadDirectory(dir: string, automaticCategoryNames?: boolean): Promise<Command[]>;
     function prependMiddleware(commands: Command[], ...middleware: CommandHandler[]): Promise<void>;
     function executeMiddleware(message: Message, middleware: CommandHandler[]): Promise<void>;
     const specializeEmbed: (embed: RichEmbed | RichEmbedOptions) => RichEmbed | RichEmbedOptions;

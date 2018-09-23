@@ -216,7 +216,7 @@ export namespace CommandUtils {
      * 
      * @param dir the path to the directory
      */
-    export async function loadDirectory(dir: string): Promise<Command[]> {
+    export async function loadDirectory(dir: string, automaticCategoryNames?: boolean): Promise<Command[]> {
         let contents = await fs.readdir(dir), commands: Command[] = [];
 
         for (let content of contents) {
@@ -226,7 +226,18 @@ export namespace CommandUtils {
             // commands must be .js files
             if (stat.isFile() && !location.endsWith(".js")) continue;
 
-            commands = commands.concat(stat.isDirectory() ? await loadDirectory(location) : await parse(require(location)));
+            const newCommands = stat.isDirectory() ? await loadDirectory(location) : await parse(require(location));
+
+            if (automaticCategoryNames) {
+                let parentDirName: string | string[] = path.dirname(location).split('/');
+                parentDirName = parentDirName[parentDirName.length - 1];
+                for (let command of newCommands) {
+                    if (!!command.opts.category) continue;
+                    command.opts.category = parentDirName;
+                }
+            }
+
+            commands = commands.concat(newCommands);
         }
 
         return commands;

@@ -22,6 +22,11 @@ export interface ApplicationOptions {
      */
     commandDirectory?: string;
     /**
+     * whether or not command categories should default to their parent folder name.
+     * default is false
+     */
+    automaticCategoryNames?: boolean;
+    /**
      * message prefix for commands
      */
     COMMAND_PREFIX?: string;
@@ -64,7 +69,7 @@ export class Application {
             await this.client.login(this.options.token);
         }
 
-        (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude});
+        (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude, automaticCategoryNames: this.options.automaticCategoryNames});
         await this.commandSystem.init();
 
         this.client.on("message", message => {

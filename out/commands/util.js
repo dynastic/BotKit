@@ -106,7 +106,7 @@ var CommandUtils;
      *
      * @param dir the path to the directory
      */
-    async function loadDirectory(dir) {
+    async function loadDirectory(dir, automaticCategoryNames) {
         let contents = await fs_extra_1.default.readdir(dir), commands = [];
         for (let content of contents) {
             const location = path_1.default.resolve(dir, content);
@@ -114,7 +114,17 @@ var CommandUtils;
             // commands must be .js files
             if (stat.isFile() && !location.endsWith(".js"))
                 continue;
-            commands = commands.concat(stat.isDirectory() ? await loadDirectory(location) : await parse(require(location)));
+            const newCommands = stat.isDirectory() ? await loadDirectory(location) : await parse(require(location));
+            if (automaticCategoryNames) {
+                let parentDirName = path_1.default.dirname(location).split('/');
+                parentDirName = parentDirName[parentDirName.length - 1];
+                for (let command of newCommands) {
+                    if (!!command.opts.category)
+                        continue;
+                    command.opts.category = parentDirName;
+                }
+            }
+            commands = commands.concat(newCommands);
         }
         return commands;
     }

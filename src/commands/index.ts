@@ -12,6 +12,7 @@ import * as Guards from "./guards";
 export interface CommandSystemOptions {
     directory?: string;
     preloadExclude?: string[];
+    automaticCategoryNames?: boolean;
     app: Application;
 }
 
@@ -72,7 +73,7 @@ export default class CommandSystem {
      * Loads commands into the tracking system
      */
     public async init(): Promise<void> {
-        let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory) : [];
+        let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory, this.options.automaticCategoryNames) : [];
         commands = commands.concat(await CommandUtil.CommandUtils.parse(require(path.resolve(__dirname, "commands"))));
         await CommandUtil.CommandUtils.prependMiddleware(commands, PermissionGuard);
 

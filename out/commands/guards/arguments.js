@@ -74,7 +74,7 @@ exports.Argumented = (command, description, args) => {
         validators[i] = {
             name,
             validator: async (args, msg) => {
-                let text = unlimited ? args.slice(i).join(" ") : args[i];
+                let text = unlimited ? args[i] = args.slice(i).join(" ") : args[i];
                 if (!text || text.length === 0) {
                     if (required !== false) {
                         return "This argument is required.";
