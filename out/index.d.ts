@@ -31,6 +31,10 @@ export interface ApplicationOptions {
      * permission roles
      */
     ROLES?: RoleOptions;
+    /**
+     * Commands to exclude from bot loading
+     */
+    preloadExclude?: string[];
 }
 /**
  * Initializes the framework

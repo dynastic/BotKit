@@ -70,14 +70,9 @@ Message.prototype.data = {};
 GuildMember.prototype.hasAccess = async function(this: GuildMember, commandName: string | AccessLevel) {
     const verify = (role: "moderator" | "admin" | "root") => {
         for (let [,{id}] of this.roles) {
-            if (ROLES_INCLUSIVE[role][id]) return true;
+            if (ROLES_INCLUSIVE[role].includes(id)) return true;
         }
         return false;
-    }
-    if (AccessLevel[commandName.toUpperCase()]) {
-        const access = AccessLevel[commandName.toUpperCase()];
-        if (access === AccessLevel.EVERYONE) return true;
-        return verify(access.toLowerCase());
     }
     const command = this.client.botkit.commandSystem.commands[commandName];
     if (!command) return false;

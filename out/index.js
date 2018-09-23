@@ -37,7 +37,7 @@ class Application {
         if (!this.client.readyTimestamp) {
             await this.client.login(this.options.token);
         }
-        this.commandSystem = new commands_1.default({ directory: this.options.commandDirectory, app: this });
+        this.commandSystem = new commands_1.default({ directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude });
         await this.commandSystem.init();
         this.client.on("message", message => {
             if (!message.cleanContent.startsWith(Constants.COMMAND_PREFIX))

@@ -45,14 +45,18 @@ class CommandSystem {
             if (typeof message.isCommand === "undefined") {
                 message.isCommand = message.content.startsWith(Constants_1.COMMAND_PREFIX);
             }
-            if (!message.args && message.isCommand) {
-                message.args = message.content.substring(Constants_1.COMMAND_PREFIX.length).trim().match(Constants_1.ARGUMENT_REGEX);
+            if (!message.isCommand)
+                return;
+            if (!message.args) {
+                message.args = message.content.substring(Constants_1.COMMAND_PREFIX.length).trim().match(Constants_1.ARGUMENT_REGEX) || [];
                 for (let i = 0; i < message.args.length; i++) {
                     message.args[i] = stripStartEnd('"', message.args[i]);
                     message.args[i] = stripStartEnd("'", message.args[i]);
                 }
             }
-            if (!message.command && message.isCommand) {
+            if (message.args.length === 0)
+                return;
+            if (!message.command) {
                 message.command = options.app.commandSystem.commands[message.args[0]];
                 message.args.shift();
             }
@@ -66,6 +70,8 @@ class CommandSystem {
         commands = commands.concat(await CommandUtil.CommandUtils.parse(require(path_1.default.resolve(__dirname, "commands"))));
         await CommandUtil.CommandUtils.prependMiddleware(commands, guards_1.PermissionGuard);
         for (let command of commands) {
+            if (this.options.preloadExclude && this.options.preloadExclude.includes(command.opts.name))
+                continue;
             this.commands[command.opts.name] = command;
             if (command.opts.aliases) {
                 for (let alias of command.opts.aliases) {

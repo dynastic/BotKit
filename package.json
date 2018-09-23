@@ -1,6 +1,6 @@
 {
-  "name": "botkit",
-  "version": "1.0.0",
+  "name": "dd-botkit",
+  "version": "1.0.3-3",
   "main": "out/index.js",
   "repository": "https://github.com/dynastic/bot.git",
   "author": "Dynastic Development <hello@dynastic.co>",
@@ -13,9 +13,6 @@
     "erlpack": "discordapp/erlpack",
     "flake-idgen": "^1.1.0",
     "fs-extra": "^7.0.0",
-    "node-opus": "^0.2.7",
-    "opusscript": "^0.0.6",
-    "sodium": "^2.0.3",
     "uws": "^9.14.0",
     "winston": "2.4.0"
   },

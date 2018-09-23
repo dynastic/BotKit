@@ -4,6 +4,7 @@ import Application from "..";
 import * as Guards from "./guards";
 export interface CommandSystemOptions {
     directory?: string;
+    preloadExclude?: string[];
     app: Application;
 }
 export interface CommandMetadata {

@@ -57,17 +57,11 @@ discord_js_1.Message.prototype.data = {};
 discord_js_1.GuildMember.prototype.hasAccess = async function (commandName) {
     const verify = (role) => {
         for (let [, { id }] of this.roles) {
-            if (Constants_1.ROLES_INCLUSIVE[role][id])
+            if (Constants_1.ROLES_INCLUSIVE[role].includes(id))
                 return true;
         }
         return false;
     };
-    if (util_1.AccessLevel[commandName.toUpperCase()]) {
-        const access = util_1.AccessLevel[commandName.toUpperCase()];
-        if (access === util_1.AccessLevel.EVERYONE)
-            return true;
-        return verify(access.toLowerCase());
-    }
     const command = this.client.botkit.commandSystem.commands[commandName];
     if (!command)
         return false;

@@ -33,6 +33,10 @@ export interface ApplicationOptions {
      * permission roles
      */
     ROLES?: RoleOptions;
+    /**
+     * Commands to exclude from bot loading
+     */
+    preloadExclude?: string[];
 }
 
 /**
@@ -60,7 +64,7 @@ export class Application {
             await this.client.login(this.options.token);
         }
 
-        (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this});
+        (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude});
         await this.commandSystem.init();
 
         this.client.on("message", message => {
