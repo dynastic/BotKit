@@ -18,5 +18,12 @@
     "@types/flake-idgen": "^0.1.30",
     "@types/fs-extra": "^5.0.4",
     "@types/winston": "2.3.7"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "clean": "rm -rf out",
+    "reset": "npm run clean && rm -rf node_modules && rm -rf yarn.lock",
+    "prepack": "npm run clean && npm run build"
   }
 }
