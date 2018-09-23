@@ -1,3 +1,5 @@
+// This file adds additional functions to Discord.JS prototypes
+
 import { Collection, Guild, GuildMember, Message, MessageOptions, User } from 'discord.js';
 
 import Application from '..';

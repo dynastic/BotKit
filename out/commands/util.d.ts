@@ -127,7 +127,21 @@ export declare namespace CommandUtils {
      * @param dir the path to the directory
      */
     function loadDirectory(dir: string, automaticCategoryNames?: boolean): Promise<Command[]>;
+    /**
+     * Adds middleware which take priority over existing middleware to commands
+     * @param commands commands to add middleware to
+     * @param middleware middleware to add
+     */
     function prependMiddleware(commands: Command[], ...middleware: CommandHandler[]): Promise<void>;
+    /**
+     * Executes all middleware on a commmand, resolves when done
+     * @param message
+     * @param middleware
+     */
     function executeMiddleware(message: Message, middleware: CommandHandler[]): Promise<void>;
+    /**
+     * Adds bot branding to an embed
+     * @param embed embed to brand
+     */
     const specializeEmbed: (embed: RichEmbed | RichEmbedOptions) => RichEmbed | RichEmbedOptions;
 }

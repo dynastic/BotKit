@@ -5,6 +5,11 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("./errors");
 const util_1 = require("./util");
+/**
+ * Simple guard which ensures a user has a given access level
+ * @param msg the message to check against
+ * @param next next function
+ */
 exports.PermissionGuard = async (msg, next) => {
     const access = msg.command.opts.access || util_1.AccessLevel.EVERYONE;
     if (await (msg.member || msg.author).hasAccess(msg.command.opts.name))

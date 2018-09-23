@@ -1,4 +1,5 @@
 "use strict";
+// This file adds additional functions to Discord.JS prototypes
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const util_1 = require("./util");

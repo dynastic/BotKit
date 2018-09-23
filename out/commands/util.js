@@ -129,28 +129,49 @@ var CommandUtils;
         return commands;
     }
     CommandUtils.loadDirectory = loadDirectory;
+    /**
+     * Adds middleware which take priority over existing middleware to commands
+     * @param commands commands to add middleware to
+     * @param middleware middleware to add
+     */
     async function prependMiddleware(commands, ...middleware) {
         for (let command of commands) {
             (command.opts.guards || (command.opts.guards = [])).unshift(...middleware);
         }
     }
     CommandUtils.prependMiddleware = prependMiddleware;
+    /**
+     * Executes all middleware on a commmand, resolves when done
+     * @param message
+     * @param middleware
+     */
     function executeMiddleware(message, middleware) {
         return new Promise((resolve, reject) => {
             let idx = -1;
-            const next = (err) => {
+            const next = async (err) => {
                 if (err) {
+                    // send error down the chain
                     return reject(err);
                 }
                 idx++;
                 if (!middleware[idx])
                     return resolve();
-                middleware[idx](message, next);
+                // allows guards to throw CommandErrors and sends it down the chain
+                try {
+                    await middleware[idx](message, next);
+                }
+                catch (e) {
+                    return reject(e);
+                }
             };
             next();
         });
     }
     CommandUtils.executeMiddleware = executeMiddleware;
+    /**
+     * Adds bot branding to an embed
+     * @param embed embed to brand
+     */
     CommandUtils.specializeEmbed = (embed) => {
         if (embed instanceof discord_js_1.RichEmbed)
             embed.setFooter(Constants_1.BOT_AUTHOR, Constants_1.BOT_ICON);

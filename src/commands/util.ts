@@ -243,27 +243,47 @@ export namespace CommandUtils {
         return commands;
     }
 
+    /**
+     * Adds middleware which take priority over existing middleware to commands
+     * @param commands commands to add middleware to
+     * @param middleware middleware to add
+     */
     export async function prependMiddleware(commands: Command[], ...middleware: CommandHandler[]): Promise<void> {
         for (let command of commands) {
             (command.opts.guards || (command.opts.guards = [])).unshift(...middleware);
         }
     }
 
+    /**
+     * Executes all middleware on a commmand, resolves when done
+     * @param message 
+     * @param middleware 
+     */
     export function executeMiddleware(message: Message, middleware: CommandHandler[]): Promise<void> {
         return new Promise((resolve, reject) => {
             let idx = -1;
-            const next = (err?: any) => {
+            const next = async (err?: any) => {
                 if (err) {
+                    // send error down the chain
                     return reject(err);
                 }
                 idx++;
                 if (!middleware[idx]) return resolve();
-                middleware[idx](message, next);
+                // allows guards to throw CommandErrors and sends it down the chain
+                try {
+                    await middleware[idx](message, next);
+                } catch (e) {
+                    return reject(e);
+                }
             };
             next();
         });
     }
 
+    /**
+     * Adds bot branding to an embed
+     * @param embed embed to brand
+     */
     export const specializeEmbed = (embed: RichEmbed | RichEmbedOptions) => {
         if (embed instanceof RichEmbed) embed.setFooter(BOT_AUTHOR, BOT_ICON);
         else embed.footer = {text: BOT_AUTHOR, icon_url: BOT_ICON};
