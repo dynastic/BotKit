@@ -112,6 +112,55 @@ export interface Command {
     handler: CommandHandler;
 }
 
+export class CommandBuilder {
+    private command: Partial<Command> = {};
+
+    public name(name: string) {
+        this.opts.name = name;
+        return this;
+    }
+
+    public enabled(enabled: boolean) {
+        this.opts.enabled = enabled;
+        return this;
+    }
+
+    public alias(alias: string | string[]) {
+        this.opts.aliases = (this.opts.aliases || (this.opts.aliases = [])).concat(alias);
+        return this;
+    }
+
+    public data(key: string, value: any) {
+        (this.opts.data || (this.opts.data = {}))[key] = value;
+        return this;
+    }
+
+    public access(access: AccessLevel) {
+        this.opts.access = access;
+        return this;
+    }
+
+    public guard(guard: CommandHandler | CommandHandler[]) {
+        this.opts.guards = (this.opts.guards || (this.opts.guards = [])).concat(guard);
+    }
+
+    public category(category: string) {
+        this.opts.category = category;
+    }
+
+    public handler(handler: CommandHandler) {
+        this.command.handler = handler;
+    }
+
+    private get opts(): {name?: string, enabled?: boolean, aliases?: string[], data?: {[key: string]: any}} & CommandOptions {
+        return this.command.opts || (this.command.opts = {} as any);
+    }
+
+    public get built(): Command {
+        return this.command as any;
+    }
+}
+
 export interface Commands {
     opts?: CommandOptions;
     commands: Array<Command | Commands>;
