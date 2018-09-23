@@ -1,6 +1,7 @@
 ![Dynastic Development](https://github.com/dynastic/assets/raw/master/images/brand.png)
 
 # BotKit
+###### Examples and documentations will be pushed at a later date.
 
 A minimal framework for rapid creation of Discord bots.
 
