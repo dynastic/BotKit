@@ -8,7 +8,6 @@
   "private": false,
   "dependencies": {
     "biguint-format": "^1.0.0",
-    "bufferutil": "^3.0.3",
     "discord.js": "^11.3.2",
     "flake-idgen": "^1.1.0",
     "fs-extra": "^7.0.0",
@@ -18,7 +17,6 @@
   "devDependencies": {
     "@types/flake-idgen": "^0.1.30",
     "@types/fs-extra": "^5.0.4",
-    "@types/uws": "^0.13.2",
     "@types/winston": "2.3.7"
   }
 }
