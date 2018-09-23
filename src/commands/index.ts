@@ -55,15 +55,15 @@ export default class CommandSystem {
             if (!message.args) {
                 message.args = message.content.substring(COMMAND_PREFIX.length).trim().match(ARGUMENT_REGEX) as string[] || [];
                 for (let i = 0; i < message.args.length; i++) {
-                    message.args[i] = stripStartEnd('"', message.args[i]);
-                    message.args[i] = stripStartEnd("'", message.args[i]);
+                    message.args[i] = stripStartEnd('"', message.args[i] as string);
+                    message.args[i] = stripStartEnd("'", message.args[i] as string);
                 }
             }
 
             if (message.args.length === 0) return;
         
             if (!message.command) {
-                message.command = options.app.commandSystem.commands[message.args[0]]!;
+                message.command = options.app.commandSystem.commands[message.args[0] as string]!;
                 message.args.shift();
             }
         });

@@ -18,7 +18,7 @@ export const HelpCommand: Command = {
 
         // command manpage
         if (specificCommand) {
-            const command = message.client.botkit.commandSystem.commands[specificCommand];
+            const command = message.client.botkit.commandSystem.commands[specificCommand as string];
             if (!command) {
                 return next(new CommandError({message: "That command does not exist."}));
             }
@@ -98,7 +98,7 @@ export const EvalCommand: Command = {
         let context: Context = {
             message,
             app: message.client.botkit,
-            args: message.args,
+            args: message.args as any[],
             author: message.author,
             channel: message.channel as any,
             guild: message.guild,

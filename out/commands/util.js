@@ -15,6 +15,47 @@ var AccessLevel;
     AccessLevel["ADMIN"] = "admin";
     AccessLevel["ROOT"] = "root";
 })(AccessLevel = exports.AccessLevel || (exports.AccessLevel = {}));
+class CommandBuilder {
+    constructor() {
+        this.command = {};
+    }
+    name(name) {
+        this.opts.name = name;
+        return this;
+    }
+    enabled(enabled) {
+        this.opts.enabled = enabled;
+        return this;
+    }
+    alias(alias) {
+        this.opts.aliases = (this.opts.aliases || (this.opts.aliases = [])).concat(alias);
+        return this;
+    }
+    data(key, value) {
+        (this.opts.data || (this.opts.data = {}))[key] = value;
+        return this;
+    }
+    access(access) {
+        this.opts.access = access;
+        return this;
+    }
+    guard(guard) {
+        this.opts.guards = (this.opts.guards || (this.opts.guards = [])).concat(guard);
+    }
+    category(category) {
+        this.opts.category = category;
+    }
+    handler(handler) {
+        this.command.handler = handler;
+    }
+    get opts() {
+        return this.command.opts || (this.command.opts = {});
+    }
+    get built() {
+        return this.command;
+    }
+}
+exports.CommandBuilder = CommandBuilder;
 var CommandUtils;
 (function (CommandUtils) {
     function isCommandOptions(options) {

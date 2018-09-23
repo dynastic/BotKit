@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Channel, Guild, GuildMember, Message, User } from "discord.js";
 import { CommandHandler } from "../util";
 export declare namespace ArgumentSDK {
     /**
@@ -13,6 +13,7 @@ export declare namespace ArgumentSDK {
         unlimited?: boolean;
         required?: boolean;
     }
+    type ArgumentType = string | User | GuildMember | Guild | Channel | Message;
     /**
      * A function that inspects the arguments and returns errors, or null.
      *

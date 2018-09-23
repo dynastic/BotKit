@@ -1,6 +1,7 @@
 import "./api";
 import { Message, RichEmbed, RichEmbedOptions } from "discord.js";
 import { CommandError } from "./errors";
+import { ArgumentSDK } from "./guards";
 export declare enum AccessLevel {
     EVERYONE = "global",
     MODERATOR = "moderator",
@@ -62,7 +63,7 @@ declare module 'discord.js' {
         /**
          * The arguments provided for this command
          */
-        args: string[];
+        args: ArgumentSDK.ArgumentType[];
         /**
          * The command being executd by this message
          */
@@ -100,6 +101,19 @@ export interface Command {
         };
     } & CommandOptions;
     handler: CommandHandler;
+}
+export declare class CommandBuilder {
+    private command;
+    name(name: string): this;
+    enabled(enabled: boolean): this;
+    alias(alias: string | string[]): this;
+    data(key: string, value: any): this;
+    access(access: AccessLevel): this;
+    guard(guard: CommandHandler | CommandHandler[]): void;
+    category(category: string): void;
+    handler(handler: CommandHandler): void;
+    private readonly opts;
+    readonly built: Command;
 }
 export interface Commands {
     opts?: CommandOptions;

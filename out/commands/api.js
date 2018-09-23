@@ -96,4 +96,30 @@ discord_js_1.User.prototype.guilds = async function () {
             collection.set(this.id, guild);
     return collection;
 };
+discord_js_1.RichEmbed.prototype.footer = new Proxy({
+    text: null,
+    text_mutated: false,
+    icon_url: null,
+    icon_mutated: false
+}, {
+    get(target, key) {
+        if (key === "text") {
+            return target.text_mutated ? target.text : Constants_1.BOT_AUTHOR;
+        }
+        if (key === "icon_url") {
+            return target.icon_mutated ? target.icon_url : Constants_1.BOT_ICON;
+        }
+        return undefined;
+    },
+    set(target, key, value) {
+        target[key] = value;
+        if (key === "text") {
+            target.text_mutated = true;
+        }
+        if (key === "icon_url") {
+            target.icon_mutated = true;
+        }
+        return true;
+    }
+});
 //# sourceMappingURL=api.js.map

@@ -1,4 +1,4 @@
-import {Message, RichEmbed} from "discord.js";
+import {Channel, Guild, GuildMember, Message, RichEmbed, User} from "discord.js";
 
 import Application from "../..";
 import { COMMAND_PREFIX, WARNING_EMOJI, SUCCESS_EMOJI } from "../../Constants";
@@ -17,6 +17,8 @@ export namespace ArgumentSDK {
         unlimited?: boolean;
         required?: boolean;
     }
+
+    export type ArgumentType = string | User | GuildMember | Guild | Channel | Message;
     
     /**
      * A function that inspects the arguments and returns errors, or null.
@@ -155,7 +157,7 @@ export const Argumented: (command: string, desc: string, args: Array<ArgumentSDK
                 issues[i] = null;
                 continue;
             }
-            error = error ? true : !!(issues[i] = await validator.validator(message.args, message));
+            error = error ? true : !!(issues[i] = await validator.validator(message.args as string[], message));
         }
         // there's no errors, so we call next and continue the command flow
         if (!error) return next();

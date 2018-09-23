@@ -6,6 +6,7 @@ import {Collection, Guild, Message, RichEmbed, RichEmbedOptions} from "discord.j
 import {CommandError} from "./errors";
 import Application from "..";
 import { BOT_ICON, BOT_AUTHOR } from "../Constants";
+import { ArgumentSDK } from "./guards";
 
 export enum AccessLevel {
     EVERYONE = "global",
@@ -71,7 +72,7 @@ declare module 'discord.js' {
         /**
          * The arguments provided for this command
          */
-        args: string[];
+        args: ArgumentSDK.ArgumentType[];
         /**
          * The command being executd by this message
          */
