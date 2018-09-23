@@ -40,12 +40,16 @@ export interface ApplicationOptions {
      * Commands to exclude from bot loading
      */
     preloadExclude?: string[];
+    /**
+     * Function that adds additional variables to eval contexts
+     */
+    contextPopulator?: (context: Context) => Context;
 }
 /**
  * Initializes the framework
  */
 export declare class Application {
-    private options;
+    options: ApplicationOptions;
     readonly client: Client;
     readonly commandSystem: CommandSystem;
     constructor(options: ApplicationOptions);
@@ -56,6 +60,7 @@ export declare class Application {
 }
 export default Application;
 export import Constants = require("./Constants");
+import { Context } from "./commands/commands";
 export * from "./util";
 export * from "./db";
 export * from "./commands";

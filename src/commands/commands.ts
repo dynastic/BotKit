@@ -1,10 +1,11 @@
-import { Collection, Message, RichEmbed, TextChannel } from 'discord.js';
+import { Client, Collection, GuildMember, Guild, Message, RichEmbed, TextChannel, User } from 'discord.js';
 import util from 'util';
 
 import { COMMAND_PREFIX } from '../Constants';
 import {CommandError} from './errors';
 import { Argumented } from './guards';
 import { AccessLevel, Command, Commands } from './util';
+import { Application } from '..';
 
 export const HelpCommand: Command = {
     opts: {
@@ -75,6 +76,17 @@ export const PingCommand: Command = {
     }
 };
 
+export interface Context {
+    message: Message;
+    app: Application;
+    args: string[];
+    author: User;
+    channel: TextChannel;
+    guild: Guild;
+    client: Client;
+    [key: string]: any;
+}
+
 export const EvalCommand: Command = {
     opts: {
         name: "eval",
@@ -83,15 +95,19 @@ export const EvalCommand: Command = {
         guards: [Argumented("eval", "Evaluates the given code", [{name: "code", type: "string", required: true, unlimited: true}])]
     },
     handler: async (message, next) => {
-        const context = {
+        let context: Context = {
             message,
             app: message.client.botkit,
             args: message.args,
             author: message.author,
-            channel: message.channel,
+            channel: message.channel as any,
             guild: message.guild,
             client: message.client
         };
+
+        if (message.client.botkit.options.contextPopulator) {
+            context = message.client.botkit.options.contextPopulator(context);
+        }
 
         let res;
         try {

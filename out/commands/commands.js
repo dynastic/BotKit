@@ -78,7 +78,7 @@ exports.EvalCommand = {
         guards: [guards_1.Argumented("eval", "Evaluates the given code", [{ name: "code", type: "string", required: true, unlimited: true }])]
     },
     handler: async (message, next) => {
-        const context = {
+        let context = {
             message,
             app: message.client.botkit,
             args: message.args,
@@ -87,6 +87,9 @@ exports.EvalCommand = {
             guild: message.guild,
             client: message.client
         };
+        if (message.client.botkit.options.contextPopulator) {
+            context = message.client.botkit.options.contextPopulator(context);
+        }
         let res;
         try {
             res = eval(message.args.join(" "));

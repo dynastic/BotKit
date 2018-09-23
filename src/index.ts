@@ -42,6 +42,10 @@ export interface ApplicationOptions {
      * Commands to exclude from bot loading
      */
     preloadExclude?: string[];
+    /**
+     * Function that adds additional variables to eval contexts
+     */
+    contextPopulator?: (context: Context) => Context
 }
 
 /**
@@ -51,7 +55,7 @@ export class Application {
     public readonly client: Client;
     public readonly commandSystem: CommandSystem;
 
-    public constructor(private options: ApplicationOptions) {
+    public constructor(public options: ApplicationOptions) {
         Constants.applyPatches({
             COMMAND_PREFIX: options.COMMAND_PREFIX,
             ERROR_RENDER_FORMAT: options.ERROR_RENDER_FORMAT,
@@ -82,6 +86,7 @@ export class Application {
 export default Application;
 
 export import Constants = require("./Constants");
+import { Context } from "./commands/commands";
 export * from "./util";
 export * from "./db";
 export * from "./commands";
