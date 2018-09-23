@@ -5,3 +5,4 @@ src/Config.ts
 yarn-error.log
 **/Config.ts
 /yarn-offline-cache
+yarn.lock
