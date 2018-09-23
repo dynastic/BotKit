@@ -1,10 +1,10 @@
 // This file adds additional functions to Discord.JS prototypes
 
-import { Collection, Guild, GuildMember, Message, MessageOptions, User } from 'discord.js';
+import { Collection, RichEmbed, Guild, GuildMember, Message, MessageOptions, User } from 'discord.js';
 
 import Application from '..';
 import { AccessLevel, CommandUtils } from './util';
-import { ROLES, ROLES_INCLUSIVE, SUCCESS_EMOJI, FAIL_EMOJI } from '../Constants';
+import { ROLES, ROLES_INCLUSIVE, SUCCESS_EMOJI, FAIL_EMOJI, BOT_AUTHOR, BOT_ICON } from '../Constants';
 import { CommandError } from './errors';
 
 const mentionRegex = /⦗<@\d+>⦘/g;
@@ -109,3 +109,30 @@ User.prototype.guilds = async function(this: User) {
         if (guild.members.has(this.id)) collection.set(this.id, guild);
     return collection;
 }
+
+RichEmbed.prototype.footer = new Proxy({
+    text: null as any,
+    text_mutated: false,
+    icon_url: null as any,
+    icon_mutated: false
+}, {
+    get(target, key) {
+        if (key === "text") {
+            return target.text_mutated ? target.text : BOT_AUTHOR;
+        }
+        if (key === "icon_url") {
+            return target.icon_mutated ? target.icon_url : BOT_ICON;
+        }
+        return undefined;
+    },
+    set(target, key, value) {
+        target[key] = value;
+        if (key === "text") {
+            target.text_mutated = true;
+        }
+        if (key === "icon_url") {
+            target.icon_mutated = true;
+        }
+        return true;
+    }
+});
