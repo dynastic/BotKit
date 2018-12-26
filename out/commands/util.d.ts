@@ -91,6 +91,7 @@ export interface CommandOptions {
 export interface Command {
     opts: {
         name: string;
+        node?: string;
         enabled?: boolean;
         aliases?: string[];
         /**

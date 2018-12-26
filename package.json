@@ -10,20 +10,29 @@
     "biguint-format": "^1.0.0",
     "discord.js": "^11.3.2",
     "flake-idgen": "^1.1.0",
+    "flat": "^4.1.0",
     "fs-extra": "^7.0.0",
     "typeorm": "^0.2.7",
     "winston": "2.4.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.1.7",
     "@types/flake-idgen": "^0.1.30",
+    "@types/flat": "^0.0.28",
     "@types/fs-extra": "^5.0.4",
-    "@types/winston": "2.3.7"
+    "@types/mocha": "^5.2.5",
+    "@types/winston": "2.3.7",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
   },
   "scripts": {
     "build": "tsc -p .",
     "watch": "tsc -p . --watch",
     "clean": "rm -rf out",
     "reset": "npm run clean && rm -rf node_modules && rm -rf yarn.lock",
-    "prepack": "npm run clean && npm run build"
+    "prepack": "npm run clean && npm run build",
+    "test": "mocha --timeout 15000 -r ts-node/register tests/**/*.test.ts"
   }
 }
