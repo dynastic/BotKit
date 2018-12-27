@@ -53,6 +53,20 @@ var Miscellaneous;
     }
     Miscellaneous.callbackPromise = callbackPromise;
 })(Miscellaneous = exports.Miscellaneous || (exports.Miscellaneous = {}));
+var ArrayUtils;
+(function (ArrayUtils) {
+    function uniqueMerge(array1, array2) {
+        array2.forEach(val => array1.indexOf(val) > -1 ? undefined : array1.push(val));
+        return array1;
+    }
+    ArrayUtils.uniqueMerge = uniqueMerge;
+    function uniqueConcat(array1, array2) {
+        const uniqueArray = [];
+        array1.concat(array2).forEach(val => uniqueArray.indexOf(val) > -1 ? undefined : uniqueArray.push(val));
+        return uniqueArray;
+    }
+    ArrayUtils.uniqueConcat = uniqueConcat;
+})(ArrayUtils = exports.ArrayUtils || (exports.ArrayUtils = {}));
 exports.Logger = new winston.Logger({
     transports: [
         new winston.transports.Console({

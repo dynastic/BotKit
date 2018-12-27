@@ -1,1 +1,0 @@
-{"version":3,"file":"types.js","sourceRoot":"./src/","sources":["src/commands/permissions/types.ts"],"names":[],"mappings":"","sourcesContent":["import { DBEntity } from \"../../db\";\n\nexport interface PermissionSet {\n    grantedPermissions: string[];\n    negatedPermissions: string[];\n}"]}
