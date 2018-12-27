@@ -40,6 +40,21 @@ export namespace Miscellaneous {
     }
 }
 
+export namespace ArrayUtils {
+    export function uniqueMerge<K, T>(array1: K[], array2: T[]): Array<K | T> {
+        array2.forEach(val => array1.indexOf(<any>val as K) > -1 ? undefined : array1.push(<any>val as K));
+        return array1;
+    }
+
+    export function uniqueConcat<K, T>(array1: K[], array2: T[]): Array<K | T> {
+        const uniqueArray: Array<K | T> = [];
+
+        (<any>array1 as T[]).concat(array2).forEach(val => uniqueArray.indexOf(val) > -1 ? undefined : uniqueArray.push(val));
+
+        return uniqueArray;
+    }
+}
+
 export const Logger = new winston.Logger({
     transports: [
         new winston.transports.Console({
