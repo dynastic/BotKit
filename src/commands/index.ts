@@ -136,3 +136,4 @@ export * from "./util";
 export { Guards }
 export * from "./errors";
 export * from "./api";
+export * from "./permissions";

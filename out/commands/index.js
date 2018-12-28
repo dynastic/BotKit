@@ -130,4 +130,5 @@ class CommandSystem {
 exports.default = CommandSystem;
 __export(require("./util"));
 __export(require("./errors"));
+__export(require("./permissions"));
 //# sourceMappingURL=index.js.map
