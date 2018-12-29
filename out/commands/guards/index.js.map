@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["commands/guards/index.ts"],"names":[],"mappings":";;;;;AAAA,iCAA4B","sourcesContent":["export * from \"./arguments\";"]}
+{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["commands/guards/index.ts"],"names":[],"mappings":";;;;;AAAA,iCAA4B;AAC5B,mCAA8B","sourcesContent":["export * from \"./arguments\";\nexport * from \"./environment\";"]}

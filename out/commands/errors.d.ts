@@ -31,6 +31,7 @@ export declare class CommandError {
         tracking?: string;
         code?: string;
     }): CommandError;
+    static NOT_FOUND(message: string): CommandError;
     static BOT_MISSING_PERMISSIONS({ tracking, permissions }: {
         tracking?: string;
         permissions?: string[];

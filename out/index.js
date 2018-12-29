@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("./node-additions");
 const discord_js_1 = require("discord.js");
 const Constants = __importStar(require("./Constants"));
 const commands_1 = __importDefault(require("./commands"));

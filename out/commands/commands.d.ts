@@ -16,3 +16,4 @@ export interface Context {
 export declare const EvalCommand: Command;
 export declare const Moderation: Commands;
 export declare const UnicodeEmoji: Command;
+export * from "./permissions/commands";

@@ -63,6 +63,12 @@ class CommandError {
             code
         });
     }
+    static NOT_FOUND(message) {
+        return new CommandError({
+            title: "Not Found",
+            message
+        });
+    }
     static BOT_MISSING_PERMISSIONS({ tracking, permissions }) {
         return new CommandError({
             message: `I can't do that right now because I'm missing ${permissions ? `the following permissions: \n - ${permissions.join('\n - ')}` : 'the necessary permissions'}`,
