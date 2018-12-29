@@ -73,6 +73,13 @@ export class CommandError {
         });
     }
 
+    public static NOT_FOUND(message: string): CommandError {
+        return new CommandError({
+            title: "Not Found",
+            message
+        });
+    }
+
     public static BOT_MISSING_PERMISSIONS({tracking, permissions}: {tracking?: string, permissions?: string[]}): CommandError {
         return new CommandError({
             message: `I can't do that right now because I'm missing ${permissions ? `the following permissions: \n - ${permissions.join('\n - ')}` : 'the necessary permissions'}`,

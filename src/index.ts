@@ -1,3 +1,5 @@
+import "./node-additions";
+
 import { Client } from "discord.js";
 import * as Constants from "./Constants";
 import CommandSystem, { PermissionSetEntityStub } from "./commands";

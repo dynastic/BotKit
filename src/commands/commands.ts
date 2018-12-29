@@ -178,3 +178,5 @@ export const UnicodeEmoji: Command = {
     },
     handler: msg => msg.reply(`\\${msg.args[0]}`)
 }
+
+export * from "./permissions/commands";
