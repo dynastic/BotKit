@@ -75,6 +75,7 @@ exports.EvalCommand = {
         name: "eval",
         category: "Diagnostics",
         access: util_2.AccessLevel.ROOT,
+        node: "debug.eval",
         guards: [guards_1.Argumented("eval", "Evaluates the given code", [{ name: "code", type: "string", required: true, unlimited: true }])]
     },
     handler: async (message, next) => {
@@ -123,7 +124,8 @@ exports.Moderation = {
                 name: "erase-channel",
                 guards: [guards_1.Argumented("erase-channel", "Erases all messages in the specified channel", [
                         { name: "channel", type: "channel" }
-                    ])]
+                    ])],
+                node: "moderator.erase-channel"
             },
             handler: async (msg, next) => {
                 let messages;

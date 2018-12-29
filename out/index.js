@@ -39,11 +39,6 @@ class Application {
         }
         this.commandSystem = new commands_1.default({ directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude, automaticCategoryNames: this.options.automaticCategoryNames });
         await this.commandSystem.init();
-        this.client.on("message", message => {
-            if (!message.cleanContent.startsWith(Constants.COMMAND_PREFIX))
-                return;
-            this.commandSystem.executeCommand(message);
-        });
     }
 }
 exports.Application = Application;

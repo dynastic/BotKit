@@ -14,6 +14,9 @@ exports.PermissionGuard = async (msg, next) => {
     const access = msg.command.opts.access || util_1.AccessLevel.EVERYONE;
     if (await (msg.member || msg.author).hasAccess(msg.command.opts.name))
         return next();
+    if (msg.hasPermission)
+        return next();
+    const message = msg.command.opts.node ? `You do not have permission to do that.` : `You must have ${access} clearance or higher to do that.`;
     return next(new errors_1.CommandError({ message: `You must have ${access} clearance or higher to do that.` }));
 };
 __export(require("./guards/index"));

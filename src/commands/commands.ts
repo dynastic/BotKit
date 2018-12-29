@@ -92,6 +92,7 @@ export const EvalCommand: Command = {
         name: "eval",
         category: "Diagnostics",
         access: AccessLevel.ROOT,
+        node: "debug.eval",
         guards: [Argumented("eval", "Evaluates the given code", [{name: "code", type: "string", required: true, unlimited: true}])]
     },
     handler: async (message, next) => {
@@ -145,7 +146,8 @@ export const Moderation: Commands = {
                 name: "erase-channel",
                 guards: [Argumented("erase-channel", "Erases all messages in the specified channel", [
                     {name: "channel", type: "channel"}
-                ])]
+                ])],
+                node: "moderator.erase-channel"
             },
             handler: async (msg, next) => {
                 let messages: Collection<string, Message>;

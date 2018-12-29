@@ -1,6 +1,6 @@
-import {Client} from "discord.js";
+import { Client } from "discord.js";
 import * as Constants from "./Constants";
-import CommandSystem from "./commands";
+import CommandSystem, { PermissionSetEntityStub } from "./commands";
 
 export interface RoleOptions {
     moderator: string[];
@@ -8,7 +8,7 @@ export interface RoleOptions {
     root: string[];
 }
 
-export interface ApplicationOptions {
+export interface ApplicationOptions<T extends PermissionSetEntityStub> {
     /**
      * discord token. required unless you pass a client which has already been logged-in
      */
@@ -46,16 +46,35 @@ export interface ApplicationOptions {
      * Function that adds additional variables to eval contexts
      */
     contextPopulator?: (context: Context) => Context
+    /**
+     * The permissions entity that BotKit should query to determine command accessibility
+     */
+    permissionsEntity?: T;
+    /**
+     * The reference to the superusers on this instance
+     */
+    superuserCheck?: SuperuserCheck;
+    /**
+     * Advanced overrides. Do not modify things without knowing what they do.
+     */
+    overrides?: {
+        commandSystem?: {
+            features?: {
+                nodeBasedPermissions?: false;
+                superuserPermissions?: false;
+            }
+        }
+    }
 }
 
 /**
  * Initializes the framework
  */
-export class Application {
+export class Application<T extends PermissionSetEntityStub = PermissionSetEntityStub> {
     public readonly client: Client;
     public readonly commandSystem: CommandSystem;
 
-    public constructor(public options: ApplicationOptions) {
+    public constructor(public options: ApplicationOptions<T>) {
         Constants.applyPatches({
             COMMAND_PREFIX: options.COMMAND_PREFIX,
             ERROR_RENDER_FORMAT: options.ERROR_RENDER_FORMAT,
@@ -73,13 +92,8 @@ export class Application {
             await this.client.login(this.options.token);
         }
 
-        (this as any).commandSystem = new CommandSystem({directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude, automaticCategoryNames: this.options.automaticCategoryNames});
+        (this as any).commandSystem = new CommandSystem({ directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude, automaticCategoryNames: this.options.automaticCategoryNames });
         await this.commandSystem.init();
-
-        this.client.on("message", message => {
-            if (!message.cleanContent.startsWith(Constants.COMMAND_PREFIX)) return;
-            this.commandSystem.executeCommand(message);
-        });
     }
 }
 
@@ -87,6 +101,7 @@ export default Application;
 
 export import Constants = require("./Constants");
 import { Context } from "./commands/commands";
+import { SuperuserCheck } from "./commands/guards/superuser";
 export * from "./util";
 export * from "./db";
 export * from "./commands";

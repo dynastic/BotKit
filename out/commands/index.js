@@ -17,9 +17,13 @@ const CommandUtil = __importStar(require("./util"));
 const Constants_1 = require("../Constants");
 const path_1 = __importDefault(require("path"));
 const errors_1 = require("./errors");
+const __1 = require("..");
 const guards_1 = require("./guards");
 const Guards = __importStar(require("./guards"));
 exports.Guards = Guards;
+const util_1 = require("util");
+const superuser_1 = require("./guards/superuser");
+const permissions_1 = require("./guards/permissions");
 const stripStartEnd = (token, str) => {
     if (str.startsWith(token) && str.endsWith(token))
         str = str.substring(token.length, str.length - token.length);
@@ -40,7 +44,20 @@ class CommandSystem {
          * Guards to run on all commands
          */
         this.globalGuards = [];
+        const { overrides } = options.app.options;
+        let loadNodePerms = true, loadSUPerms = true;
+        if (overrides && overrides.commandSystem && overrides.commandSystem.features) {
+            const { nodeBasedPermissions, superuserPermissions } = overrides.commandSystem.features;
+            loadNodePerms = util_1.isBoolean(nodeBasedPermissions) ? nodeBasedPermissions : true;
+            loadSUPerms = util_1.isBoolean(superuserPermissions) ? superuserPermissions : true;
+        }
         this.globalGuards = [];
+        if (loadNodePerms) {
+            this.globalGuards.push(permissions_1.Permissions);
+        }
+        if (loadSUPerms) {
+            this.globalGuards.push(superuser_1.Superuser);
+        }
         options.app.client.on("message", message => {
             if (typeof message.isCommand === "undefined") {
                 message.isCommand = message.content.startsWith(Constants_1.COMMAND_PREFIX);
@@ -60,6 +77,9 @@ class CommandSystem {
                 message.command = options.app.commandSystem.commands[message.args[0]];
                 message.args.shift();
             }
+            if (!message.cleanContent.startsWith(__1.Constants.COMMAND_PREFIX))
+                return;
+            this.executeCommand(message);
         });
     }
     /**

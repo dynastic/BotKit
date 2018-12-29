@@ -78,6 +78,10 @@ declare module 'discord.js' {
         data: {
             [key: string]: any;
         };
+        /**
+         * Whether the command sender has permission to execute this command
+         */
+        hasPermission: boolean;
     }
 }
 export interface CommandHandler {

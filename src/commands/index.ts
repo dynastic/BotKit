@@ -4,10 +4,13 @@ import * as CommandUtil from "./util";
 import { COMMAND_PREFIX, ARGUMENT_REGEX, SUCCESS_EMOJI, FAIL_EMOJI, WARNING_EMOJI } from "../Constants";
 import path from "path";
 import {CommandError} from "./errors";
-import Application, { RoleOptions } from "..";
+import Application, { RoleOptions, Constants } from "..";
 import { PermissionGuard } from "./guards";
 
 import * as Guards from "./guards";
+import { isBoolean } from "util";
+import { Superuser } from "./guards/superuser";
+import { Permissions } from "./guards/permissions";
 
 export interface CommandSystemOptions {
     directory?: string;
@@ -44,7 +47,28 @@ export default class CommandSystem {
     private readonly globalGuards: CommandUtil.CommandHandler[] = [];
 
     public constructor(private options: CommandSystemOptions) {
+        const { overrides } = options.app.options;
+
+        let loadNodePerms = true, loadSUPerms = true;
+
+        if (overrides && overrides.commandSystem && overrides.commandSystem.features) {
+            const { nodeBasedPermissions, superuserPermissions } = overrides.commandSystem.features;
+
+            loadNodePerms = isBoolean(nodeBasedPermissions) ? nodeBasedPermissions : true;
+            loadSUPerms = isBoolean(superuserPermissions) ? superuserPermissions : true;
+        }
+
+
         this.globalGuards = [];
+
+        if (loadNodePerms) {
+            this.globalGuards.push(Permissions);
+        }
+
+        if (loadSUPerms) {
+            this.globalGuards.push(Superuser);
+        }
+
         options.app.client.on("message", message => {
             if (typeof message.isCommand === "undefined") {
                 message.isCommand = message.content.startsWith(COMMAND_PREFIX);
@@ -66,6 +90,9 @@ export default class CommandSystem {
                 message.command = options.app.commandSystem.commands[message.args[0] as string]!;
                 message.args.shift();
             }
+
+            if (!message.cleanContent.startsWith(Constants.COMMAND_PREFIX)) return;
+            this.executeCommand(message);
         });
     }
 
