@@ -1,11 +1,14 @@
 {
   "name": "dd-botkit",
-  "version": "1.0.19",
+  "version": "1.0.29",
   "main": "out/index.js",
   "repository": "https://github.com/dynastic/bot.git",
   "author": "Dynastic Development <hello@dynastic.co>",
   "license": "AGPLv3",
   "private": false,
+  "files": [
+    "/out"
+  ],
   "dependencies": {
     "biguint-format": "^1.0.0",
     "discord.js": "^11.3.2",
