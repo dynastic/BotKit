@@ -1,53 +1,48 @@
+import { CommandError } from "../errors";
 import { CommandHandler } from "../util";
-import { Logger } from "../../util";
-import { PermissionsAPI } from "../permissions";
 
 /**
- * Basic permissions calculation guard
- * @param message the message
- * @param next the next function
+ * Calculates the permissions
  */
-export const Permissions: CommandHandler = async (message, next) => {
-    const PermissionsEntity = message.client.botkit.options.permissionsEntity;
-    const { node } = message.command.opts;
+export const PermissionsGuard: CommandHandler = async (message, next) => {
+
+    const { superuserCheck } = message.client.botkit.options;
+
+    // set DISABLE_PERMISSIONS to anything and permisisons will just *work*!
+    if (process.env.DISABLE_PERMISSIONS || (superuserCheck && superuserCheck(message.author.id))) {
+        Object.defineProperty(message, "hasPermission", {
+            value: true,
+            writable: false
+        });
+    }
 
     // for superusers
     if (message.hasPermission) {
         return next();
     }
 
-    // if there's no node, hasPermission = true, otherwise default to false
-    message.hasPermission = !message.command.opts.node;
+    message.hasPermission = await (message.member || message.author).hasAccess(message.command.opts.name);
 
-    if (!PermissionsEntity) {
-        Logger.warn("Permissions guard was called but no PermissionsEntity is defined.");
-        return next();
+    if (!message.hasPermission) {
+        return next(new CommandError({message: `You do not have permission to do that.`}));
     }
 
-    // if there's no node, stop trying to compute
-    if (!node) {
-        return next();
+    next();
+}
+
+/**
+ * Loads permission sets if they are in the first argument
+ */
+export const PermSetLoader: CommandHandler = async (message, next) => {
+    const [name] = message.args.map(r => r.toString());
+
+    const guild = message.guild.id;
+
+    const permSet = message.data.permSet = await message.client.botkit.options.permissionsEntity!.findOne({ name: name.toString(), guild });
+
+    if (!permSet) {
+        return next(CommandError.NOT_FOUND("No permission set with that name exists."));
     }
-
-    // we don't do permissions in a DM, it's either superuser or the command doesn't have a permission requirement
-    if (!message.guild) {
-        Logger.debug("Message is not from a guild. Permission computation will not continue.");
-        return next();
-    }
-
-    const { roles, id } = message.member;
-
-    const roleIDs = roles.map(r => r.id);
-
-    const entities = await PermissionsEntity.createQueryBuilder("set")
-        .where("set.roles @> :roleIDs", { roleIDs })
-        .orWhere("set.members @> :id", { id: [id] })
-        .getMany();
-
-    // create a composite set of all of the permission sets
-    const set = await PermissionsAPI.compositePermissionSet(entities);
-
-    message.hasPermission = PermissionsAPI.nodeSatisfiesSet(node, set);
 
     next();
 }

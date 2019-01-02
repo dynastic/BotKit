@@ -1,12 +1,11 @@
-import "./api";
-
+import { Collection, Message, MessageEditOptions, MessageMentions, MessageOptions, RichEmbed, RichEmbedOptions, User } from "discord.js";
 import fs from "fs-extra";
-import path, { resolve } from "path";
-import {Collection, Guild, Message, RichEmbed, RichEmbedOptions} from "discord.js";
-import {CommandError} from "./errors";
-import Application from "..";
-import { BOT_ICON, BOT_AUTHOR } from "../Constants";
-import { ArgumentSDK } from "./guards";
+import path from "path";
+import Constants from "../Constants";
+import "./api";
+import { CommandError } from "./errors";
+import { Argumented, ArgumentSDK, ArgumentType } from "./guards/arguments";
+
 
 export enum AccessLevel {
     EVERYONE = "global",
@@ -54,9 +53,10 @@ declare module 'discord.js' {
          */
         fail(): Promise<void>;
         /**
-         * 
+         * Render a command error
+         * @param error error to render
          */
-        reject(error?: CommandError | undefined): Promise<void>;
+        renderError(error: CommandError): Promise<void>;
         /**
          * Reacts with a warning indicator
          */
@@ -72,7 +72,7 @@ declare module 'discord.js' {
         /**
          * The arguments provided for this command
          */
-        args: ArgumentSDK.ArgumentType[];
+        args: ArgumentType[];
         /**
          * The command being executd by this message
          */
@@ -91,6 +91,20 @@ declare module 'discord.js' {
          * Whether the command sender has permission to execute this command
          */
         hasPermission: boolean;
+        /**
+         * Whether the command has been errored
+         */
+        errored: boolean;
+        /**
+         * Initial data passed to setup()
+         */
+        __data: any;
+        /**
+         * Initialize the message object
+         * @param data the data
+         * @private
+         */
+        setup(data: any);
     }
 }
 
@@ -114,6 +128,10 @@ export interface Command {
          * Storage for guards and command states
          */
         data?: {[key: string]: any};
+        usage?: {
+            description?: string;
+            args?: Array<ArgumentSDK.Argument | undefined>;
+        }
     } & CommandOptions;
     handler: CommandHandler;
 }
@@ -219,7 +237,7 @@ export namespace CommandUtils {
             }
 
             // commands inherit access levels if they don't have one defined
-            if (typeof access === "number" && typeof command.opts.access === "undefined") {
+            if (access && !command.opts.access) {
                 command.opts.access = access;
             }
 
@@ -264,6 +282,14 @@ export namespace CommandUtils {
         }
         
         return commands;
+    }
+
+    export async function preloadMetadata(commands: Command[]): Promise<void> {
+        commands.forEach(command => {
+            if (command.opts.usage) {
+                (command.opts.guards || (command.opts.guards = [])).unshift(Argumented(command));
+            }
+        });
     }
 
     /**
@@ -313,6 +339,7 @@ export namespace CommandUtils {
      * Executes all middleware on a commmand, resolves when done
      * @param message 
      * @param middleware 
+     * @returns whether this was successful
      */
     export function executeMiddleware(message: Message, middleware: CommandHandler[]): Promise<void> {
         return new Promise((resolve, reject) => {
@@ -340,8 +367,62 @@ export namespace CommandUtils {
      * @param embed embed to brand
      */
     export const specializeEmbed = (embed: RichEmbed | RichEmbedOptions) => {
-        if (embed instanceof RichEmbed) embed.setFooter(BOT_AUTHOR, BOT_ICON);
-        else embed.footer = {text: BOT_AUTHOR, icon_url: BOT_ICON};
+        if (embed instanceof RichEmbed) embed.setFooter(Constants.BOT_AUTHOR, Constants.BOT_ICON);
+        else embed.footer = {text: Constants.BOT_AUTHOR, icon_url: Constants.BOT_ICON};
         return embed;
     };
+
+    export interface CommandResult {
+        deleted?: boolean;
+        reply?: [string | MessageOptions | undefined, MessageOptions | undefined];
+        edit?: [string, MessageEditOptions | RichEmbed | undefined];
+        pinned?: boolean;
+        unpinned?: boolean;
+        completed?: boolean;
+        warning?: boolean;
+        error?: CommandError;
+    }
+    
+    export async function runCommand(baseMessage: Message, command: string, user?: User) {
+        const actionLog: CommandResult[] = [];
+    
+        user = user || baseMessage.author;
+    
+        const trackAction: (result: CommandResult) => Message = result => {
+            actionLog.push(result);
+            return baseMessage;
+        }
+    
+        command = `${Constants.COMMAND_PREFIX}${command}`;
+    
+        baseMessage = new Message(baseMessage.channel, { ...baseMessage.__data, author: user}, baseMessage.client);
+    
+        baseMessage.id = null as any;
+        baseMessage.content = command;
+        baseMessage.pinned = false;
+        baseMessage.tts = false;
+        baseMessage.embeds = [];
+        baseMessage.attachments = new Collection();
+        baseMessage.createdTimestamp = new Date().getTime();
+        baseMessage.editedTimestamp = null as any;
+        baseMessage.reactions = new Collection();
+        baseMessage.mentions = new (MessageMentions as any)(baseMessage);
+        baseMessage.webhookID = null as any;
+    
+        baseMessage.delete = async () => trackAction({deleted: true});
+        baseMessage.reply = async (...args: any[]) => trackAction({reply: args as any});
+        baseMessage.edit = async (...args: any[]) => trackAction({edit: args as any});
+        baseMessage.pin = async () => trackAction({pinned: true});
+        baseMessage.unpin = async () => trackAction({unpinned: true});
+        baseMessage.complete = baseMessage.success = baseMessage.done = async () => trackAction({completed: true}) as any;
+        baseMessage.warning = baseMessage.danger = baseMessage.caution = async () => trackAction({warning: true}) as any;
+        baseMessage.renderError = async error => trackAction({error}) as any;
+    
+        await baseMessage.client.botkit.commandSystem.messageIntake(baseMessage);
+    
+        return actionLog.reduce((obj, c) => {
+            Object.keys(c).forEach(key => obj[key] = c[key]);
+            return obj;
+        }, {});
+    }
 }

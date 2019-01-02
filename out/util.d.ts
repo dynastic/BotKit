@@ -19,8 +19,12 @@ export declare namespace Miscellaneous {
         promise: Promise<void>;
     };
 }
-export declare namespace ArrayUtils {
-    function uniqueMerge<K, T>(array1: K[], array2: T[]): Array<K | T>;
-    function uniqueConcat<K, T>(array1: K[], array2: T[]): Array<K | T>;
-}
 export declare const Logger: winston.LoggerInstance;
+/**
+ * Computes the inheritence-based role list
+ */
+export declare function calculateInclusiveRoles(): {
+    moderator: string[];
+    admin: string[];
+    root: string[];
+};

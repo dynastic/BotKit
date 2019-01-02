@@ -14,15 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const CommandUtil = __importStar(require("./util"));
-const Constants_1 = require("../Constants");
+const Constants_1 = __importDefault(require("../Constants"));
 const path_1 = __importDefault(require("path"));
 const errors_1 = require("./errors");
-const __1 = require("..");
-const guards_1 = require("./guards");
-const Guards = __importStar(require("./guards"));
-exports.Guards = Guards;
-const util_1 = require("util");
-const superuser_1 = require("./guards/superuser");
 const permissions_1 = require("./guards/permissions");
 const stripStartEnd = (token, str) => {
     if (str.startsWith(token) && str.endsWith(token))
@@ -37,50 +31,34 @@ class CommandSystem {
         this.options = options;
         this.commands = {};
         /**
-         * Command metadata, for help etc.
-         */
-        this.metadata = {};
-        /**
          * Guards to run on all commands
          */
         this.globalGuards = [];
-        const { overrides } = options.app.options;
-        let loadNodePerms = true, loadSUPerms = true;
-        if (overrides && overrides.commandSystem && overrides.commandSystem.features) {
-            const { nodeBasedPermissions, superuserPermissions } = overrides.commandSystem.features;
-            loadNodePerms = util_1.isBoolean(nodeBasedPermissions) ? nodeBasedPermissions : true;
-            loadSUPerms = util_1.isBoolean(superuserPermissions) ? superuserPermissions : true;
+        this.globalGuards = [permissions_1.PermissionsGuard];
+        options.app.client.on("message", message => this.messageIntake(message));
+    }
+    async messageIntake(message) {
+        if (typeof message.isCommand === "undefined") {
+            message.isCommand = message.content.startsWith(Constants_1.default.COMMAND_PREFIX);
         }
-        this.globalGuards = [];
-        if (loadNodePerms) {
-            this.globalGuards.push(permissions_1.Permissions);
+        if (!message.isCommand)
+            return;
+        if (!message.args) {
+            message.args = message.content.substring(Constants_1.default.COMMAND_PREFIX.length).trim().match(Constants_1.default.ARGUMENT_REGEX) || [];
+            for (let i = 0; i < message.args.length; i++) {
+                message.args[i] = stripStartEnd('"', message.args[i]);
+                message.args[i] = stripStartEnd("'", message.args[i]);
+            }
         }
-        if (loadSUPerms) {
-            this.globalGuards.push(superuser_1.Superuser);
+        if (message.args.length === 0)
+            return;
+        if (!message.command) {
+            message.command = this.options.app.commandSystem.commands[message.args[0]];
+            message.args.shift();
         }
-        options.app.client.on("message", message => {
-            if (typeof message.isCommand === "undefined") {
-                message.isCommand = message.content.startsWith(Constants_1.COMMAND_PREFIX);
-            }
-            if (!message.isCommand)
-                return;
-            if (!message.args) {
-                message.args = message.content.substring(Constants_1.COMMAND_PREFIX.length).trim().match(Constants_1.ARGUMENT_REGEX) || [];
-                for (let i = 0; i < message.args.length; i++) {
-                    message.args[i] = stripStartEnd('"', message.args[i]);
-                    message.args[i] = stripStartEnd("'", message.args[i]);
-                }
-            }
-            if (message.args.length === 0)
-                return;
-            if (!message.command) {
-                message.command = options.app.commandSystem.commands[message.args[0]];
-                message.args.shift();
-            }
-            if (!message.cleanContent.startsWith(__1.Constants.COMMAND_PREFIX))
-                return;
-            this.executeCommand(message);
-        });
+        if (!message.cleanContent.startsWith(Constants_1.default.COMMAND_PREFIX))
+            return;
+        await this.executeCommand(message);
     }
     /**
      * Loads commands into the tracking system
@@ -88,7 +66,13 @@ class CommandSystem {
     async init() {
         let commands = this.options.directory ? await CommandUtil.CommandUtils.loadDirectory(this.options.directory, this.options.automaticCategoryNames) : [];
         commands = commands.concat(await CommandUtil.CommandUtils.parse(require(path_1.default.resolve(__dirname, "commands"))));
-        await CommandUtil.CommandUtils.prependMiddleware(commands, guards_1.PermissionGuard);
+        await this.loadCommands(commands);
+    }
+    async loadCommands(commands) {
+        if (!Array.isArray(commands)) {
+            commands = await CommandUtil.CommandUtils.flatten(commands);
+        }
+        await CommandUtil.CommandUtils.preloadMetadata(commands);
         for (let command of commands) {
             if (this.options.preloadExclude && this.options.preloadExclude.includes(command.opts.name))
                 continue;
@@ -108,38 +92,27 @@ class CommandSystem {
         const sendError = async (error) => {
             if (!error)
                 return;
-            if (!message.reject)
-                message.reject = (err = errors_1.CommandError.GENERIC({})) => {
-                    const render = err.render;
-                    return message.reply(typeof render === "string" ? render : "", { embed: typeof render === "object" ? render : undefined });
-                };
             if (error instanceof errors_1.CommandError) {
-                return await message.reject(error);
+                return await message.renderError(error);
             }
             /**
              * @todo tracking
              */
             console.error(error);
-            await message.reject(errors_1.CommandError.GENERIC({}));
+            await message.renderError(errors_1.CommandError.GENERIC({}));
         };
-        try {
-            await CommandUtil.CommandUtils.executeMiddleware(message, this.globalGuards);
-        }
-        catch (e) {
-            return await sendError(e);
-        }
         const command = message.command;
         if (!command || command.opts.enabled === false) {
-            await message.reject(new errors_1.CommandError({
-                message: `That command doesn't exist! Try \`${Constants_1.COMMAND_PREFIX}help\` for a list of commands.`,
+            await message.renderError(new errors_1.CommandError({
+                message: `That command doesn't exist! Try \`${Constants_1.default.COMMAND_PREFIX}help\` for a list of commands.`,
                 title: "Unknown command"
             }));
             return;
         }
         try {
-            if (command.opts.guards) {
-                await CommandUtil.CommandUtils.executeMiddleware(message, command.opts.guards);
-            }
+            await CommandUtil.CommandUtils.executeMiddleware(message, this.globalGuards.concat(command.opts.guards || []));
+            if (message.errored)
+                return;
             await command.handler(message, sendError);
         }
         catch (e) {
@@ -149,6 +122,7 @@ class CommandSystem {
 }
 exports.default = CommandSystem;
 __export(require("./util"));
+__export(require("./guards"));
 __export(require("./errors"));
 __export(require("./permissions"));
 //# sourceMappingURL=index.js.map

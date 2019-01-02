@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const util_1 = require("../../util");
 var _PermissionInternals;
 (function (_PermissionInternals) {
     /**
@@ -112,8 +111,8 @@ var PermissionsAPI;
         const grantedPermissions = [];
         const negatedPermissions = [];
         sets.forEach(set => {
-            util_1.ArrayUtils.uniqueMerge(grantedPermissions, set.grantedPermissions);
-            util_1.ArrayUtils.uniqueMerge(negatedPermissions, set.negatedPermissions);
+            ArrayUtils.uniqueMerge(grantedPermissions, set.grantedPermissions);
+            ArrayUtils.uniqueMerge(negatedPermissions, set.negatedPermissions);
         });
         return {
             grantedPermissions,
@@ -122,4 +121,12 @@ var PermissionsAPI;
     }
     PermissionsAPI.compositePermissionSet = compositePermissionSet;
 })(PermissionsAPI = exports.PermissionsAPI || (exports.PermissionsAPI = {}));
+var ArrayUtils;
+(function (ArrayUtils) {
+    function uniqueMerge(array1, array2) {
+        array2.forEach(val => array1.indexOf(val) > -1 ? undefined : array1.push(val));
+        return array1;
+    }
+    ArrayUtils.uniqueMerge = uniqueMerge;
+})(ArrayUtils = exports.ArrayUtils || (exports.ArrayUtils = {}));
 //# sourceMappingURL=util.js.map

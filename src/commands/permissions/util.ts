@@ -1,5 +1,4 @@
 import { PermissionSet } from "./types";
-import { ArrayUtils } from "../../util";
 
 export namespace _PermissionInternals {
     /**
@@ -122,5 +121,12 @@ export namespace PermissionsAPI {
             grantedPermissions,
             negatedPermissions
         };
+    }
+}
+
+export namespace ArrayUtils {
+    export function uniqueMerge<K, T>(array1: K[], array2: T[]): Array<K | T> {
+        array2.forEach(val => array1.indexOf(<any>val as K) > -1 ? undefined : array1.push(<any>val as K));
+        return array1;
     }
 }

@@ -1,12 +1,15 @@
 import { RichEmbed } from "discord.js";
-import { ErrorFormat } from "../Constants";
+import Constants from "../Constants";
 export interface CommandErrorOptions {
     message: string;
     title?: string;
     code?: string;
     tracking?: string;
     errorPrefix?: boolean;
-    render?: ErrorFormat;
+    render?: Constants.ErrorFormat;
+    fields?: {
+        [key: string]: string;
+    };
 }
 /**
  * An error class that can be thrown by commands and guards which are rendered to the client

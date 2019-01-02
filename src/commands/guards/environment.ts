@@ -1,5 +1,5 @@
-import { CommandHandler } from "../util";
 import { CommandError } from "../errors";
+import { CommandHandler } from "../util";
 
 export type Environment = 'dm' | 'group' | 'text' | 'voice' | 'category';
 

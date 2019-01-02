@@ -1,26 +1,13 @@
-import { EnvironmentGuard } from "../guards/Environment";
-
+import { GuildMember } from "discord.js";
 import { inspect } from "util";
-import { Argumented } from "../guards";
-import { PermissionSetEntity } from "./types";
-import { AccessLevel, CommandHandler, Command, Commands } from "../util";
-import { CommandError } from "../errors";
+import { CommandError } from "../commands/errors";
+import { PermSetLoader } from "../commands/guards";
+import { EnvironmentGuard } from "../commands/guards/Environment";
+import { PermissionSetEntity } from "../commands/permissions/types";
+import { Command, Commands } from "../commands/util";
 
-const PermissionsAccessLevel = AccessLevel.ADMIN;
 
-const PermSetLoader: CommandHandler = async (message, next) => {
-    const [name] = message.args.map(r => r.toString());
-
-    const guild = message.guild.id;
-
-    const permSet = message.data.permSet = await message.client.botkit.options.permissionsEntity!.findOne({ name: name.toString(), guild });
-
-    if (!permSet) {
-        return next(CommandError.NOT_FOUND("No permission set with that name exists."));
-    }
-
-    next();
-}
+const PermissionsAccessLevel = "admin" as any;
 
 /**
  * Command builder for a membership target modifier
@@ -32,31 +19,34 @@ const TargetModifier: (target: "role" | "member", state: "add" | "del") => Comma
         name: `${state}-${target}-pset`,
         node: "perm.manage-members",
         access: PermissionsAccessLevel,
-        guards: [
+        usage: {
             // ternary stuff in interpolation is for grammar
-            Argumented(`${state}-${target}-pset`, `${state === "add" ? "Add" : "Remove"} ${target}s ${state === "add" ? "to" : "from"} a permission set`, [
+            description: `${state === "add" ? "Add" : "Remove"} ${target}s ${state === "add" ? "to" : "from"} a permission set`,
+            args: [
                 {
                     type: "string",
                     name: "pset-name",
                     required: true
                 },
                 {
-                    type: "string",
+                    type: target === "member" ? "member" : "string",
                     name: `${target}-ids`,
                     required: true,
                     unlimited: true
                 }
-            ]),
+            ]
+        },
+        guards: [
             PermSetLoader
         ]
     },
     handler: async (message, next) => {
-        const [, ...ids] = message.args.map(i => i.toString());
+        const [, ...ids] = message.args;
 
         const permSet: PermissionSetEntity = message.data.permSet;
 
         // addTarget() or delTarget()
-        permSet[state + "Target"](target, ...ids);
+        permSet[state + "Target"](target, ...(typeof ids[0] === "string" ? ids : (ids as GuildMember[]).map(member => member.id)));
 
         await permSet.save();
         await message.success();
@@ -73,9 +63,10 @@ const PermissionStateModifier: (action: "grant" | "negate" | "reset") => Command
         name: `${action}-perm`,
         node: "perm.manage-perm",
         access: PermissionsAccessLevel,
-        guards: [
+        usage: {
             // ternary stuff in interpolation is for grammar
-            Argumented(`${action}-perm`, `${action.capitalize()} a permission ${action === "negate" ? "from" : "in"} a permission set`, [
+            description: `${action.capitalize()} a permission ${action === "negate" ? "from" : "in"} a permission set`,
+            args: [
                 {
                     type: "string",
                     name: "name",
@@ -87,7 +78,9 @@ const PermissionStateModifier: (action: "grant" | "negate" | "reset") => Command
                     required: true,
                     unlimited: true
                 }
-            ]),
+            ]
+        },
+        guards: [
             PermSetLoader
         ]
     },
@@ -104,9 +97,10 @@ const PermissionStateModifier: (action: "grant" | "negate" | "reset") => Command
     }
 })
 
-export const PermissionsCommands: Commands = {
+export const PsetTools: Commands = {
     opts: {
-        guards: [EnvironmentGuard(['text'])]
+        guards: [EnvironmentGuard(['text'])],
+        category: "Permissions"
     },
     commands: [
         {
@@ -114,15 +108,16 @@ export const PermissionsCommands: Commands = {
                 name: "create-pset",
                 node: "perm.create-pset",
                 access: PermissionsAccessLevel,
-                guards: [
-                    Argumented("create-pset", "Create a permission set", [
+                usage: {
+                    description: "Create a permission set",
+                    args: [
                         {
                             type: "string",
                             name: "name",
                             required: true
                         }
-                    ])
-                ]
+                    ]
+                }
             },
             /**
              * Creates a bare permission set
@@ -158,14 +153,17 @@ export const PermissionsCommands: Commands = {
                 name: "get-pset",
                 node: "perm.get-pset",
                 access: PermissionsAccessLevel,
-                guards: [
-                    Argumented("get-pset", "Get a permission set", [
+                usage: {
+                    description: "Get a permission set",
+                    args: [
                         {
                             type: "string",
                             name: "name",
                             required: true
                         }
-                    ]),
+                    ]
+                },
+                guards: [
                     PermSetLoader
                 ]
             },

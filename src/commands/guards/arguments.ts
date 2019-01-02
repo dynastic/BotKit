@@ -1,8 +1,19 @@
-import {Channel, Guild, GuildMember, Message, RichEmbed, User} from "discord.js";
+import { Channel, Guild, GuildMember, Message, RichEmbed, Role, User } from "discord.js";
+import Constants from "../../Constants";
+import { Command, CommandHandler } from "../util";
 
-import Application from "../..";
-import { COMMAND_PREFIX, WARNING_EMOJI, SUCCESS_EMOJI } from "../../Constants";
-import { CommandHandler } from "../util";
+/**
+ * This is not a public guard. This is part of the arguments api.
+ * 
+ * You may include this guard in a command by using the usage entry on command opts
+ * 
+ * opts: {
+ *  usage: {
+ *    description: "Dies",
+ *    args: []
+ *  }
+ * }
+ */
 
 export namespace ArgumentSDK {
     /**
@@ -13,13 +24,13 @@ export namespace ArgumentSDK {
         /**
          * If the type is a function, it takes the place of a validator function and returns the error or null.
          */
-        type: "string" | "boolean" | "number" | "user" | "member" | "guild" | "channel" | "message" | Validator;
+        type: "string" | "boolean" | "number" | "user" | "member" | "guild" | "channel" | "message" | "role" | Validator;
         unlimited?: boolean;
         required?: boolean;
     }
 
-    export type ArgumentType = string | User | GuildMember | Guild | Channel | Message;
-    
+    export type ArgumentType = string | User | GuildMember | Guild | Channel | Message | Role;
+
     /**
      * A function that inspects the arguments and returns errors, or null.
      * 
@@ -27,32 +38,33 @@ export namespace ArgumentSDK {
      * argument, as each validator function is for a specific argument slot.
      */
     export type Validator = (args: string[], message: Message) => Promise<string | null>;
-    
+
     /**
      * Checks the type of a given value
      * @param value the value to check
      * @param type the typeof to validate
      * @param error the error to return
      */
-    export function parse<T>(value: string, type: string, error: T): {error: T | null, value: any} {
+    export function parse<T>(value: string, type: string, error: T): { error: T | null, value: any } {
         try {
             value = JSON.parse(value);
             if (typeof value !== type) {
-                return {error, value};
+                return { error, value };
             }
-            return {error: null, value};
+            return { error: null, value };
         } catch (e) {
-            return {error, value};
+            return { error, value };
         }
     }
-    
+
     /**
      * Functions related to extracting IDs from strings
      */
     export namespace Matching {
-        const channelRegex = /(?:<#)(\d{17,19})(?:>)/g;
-        const userRegex = /(?:<@!?)(1|\d{17,19})(?:>)/g;
-    
+        const channelRegex = /(?:<?#?)(\d{17,19})(?:>?)/g;
+        const userRegex = /(?:<?@?!?)(\d{17,19}|1)(?:>?)/g;
+        const roleRegex = /(?:<?@?&?)(\d{17,19}|1)(?:>?)/g
+
         /**
          * Extracts the channel ID
          * @param str the string to match
@@ -62,7 +74,7 @@ export namespace ArgumentSDK {
             const match = channelRegex.exec(str);
             return match && match[1];
         }
-    
+
         /**
          * Extracts the UID
          * @param str the string to match
@@ -70,6 +82,12 @@ export namespace ArgumentSDK {
         export const user = (str: string) => {
             userRegex.lastIndex = 0;
             const match = userRegex.exec(str);
+            return match && match[1];
+        }
+
+        export const role = (role: string) => {
+            roleRegex.lastIndex = 0;
+            const match = roleRegex.exec(role);
             return match && match[1];
         }
     }
@@ -81,29 +99,32 @@ export namespace ArgumentSDK {
  * @param args The command arguments
  * @param command The command itself
  */
-export const Argumented: (command: string, desc: string, args: Array<ArgumentSDK.Argument | undefined>) => CommandHandler = (command, description, args) => {
+export const Argumented: (command: Command) => CommandHandler = (command) => {
     // every idx of validators array corresponds to args array
-    const validators: Array<{name: string, validator: ArgumentSDK.Validator} | null> = [];
+    const validators: Array<{ name: string, validator: ArgumentSDK.Validator } | null> = [];
 
-    let syntax: string = `${COMMAND_PREFIX}${command}`;
+    let syntax: string = `${Constants.COMMAND_PREFIX}${command.opts.name}`;
 
-    for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
+    const args = command.opts.usage!.args || [];
+
+    for (let argIndex = 0; argIndex < args.length; argIndex++) {
+        const arg = args[argIndex];
         if (!arg) {
             // there's no argument data for this, including a name. we use param{idx} as the name
-            syntax += ` <param${i}>`;
-            validators[i] = null;
+            syntax += ` <param${argIndex}>`;
+            validators[argIndex] = null;
             continue;
         }
-        const {name, type, unlimited, required} = arg;
+        const { name, type, unlimited, required } = arg;
         // appends this argument slot to the syntax str
         syntax += ` <${unlimited ? '...' : ''}${name}${required === false ? "?" : ""}>`;
-        validators[i] = {
+        validators[argIndex] = {
             name,
             validator: async (args, msg) => {
-                let text = unlimited ? args[i] = args.slice(i).join(" ") : args[i];
-                
-                if (!text || text.length === 0) {
+                let checkParams: string[] = unlimited ? args.slice(argIndex) : [args[argIndex]];
+                checkParams = checkParams.filter(param => typeof param !== "undefined");
+
+                if (checkParams.length === 0) {
                     if (required !== false) {
                         return "This argument is required.";
                     }
@@ -113,42 +134,81 @@ export const Argumented: (command: string, desc: string, args: Array<ArgumentSDK
                 switch (type) {
                     case "string":
                         // there's really nothing to validate if it's a string, it's already a string.
-                        return null;
+                        break;
                     // boolean and number are identical in how they're parsed, so they're the same handling code
                     case "boolean":
                     case "number":
-                        const result = ArgumentSDK.parse(args[i], type, `Must be a ${type}.`);
-                        args[i] = result.value;
-                        return result.error;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            const result = ArgumentSDK.parse(param, type, `Must be a ${type}.`);
+                            checkParams[i] = result.value;
+                            if (result.error) {
+                                return result.error;
+                            }
+                        }
+                        break;
                     case "user":
                     case "member":
-                        let userID = ArgumentSDK.Matching.user(text);
-                        args[i] = userID && (type === "member" ? msg.guild.members : msg.client.users).get(userID) as any;
-                        return args[i] ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            let userID = ArgumentSDK.Matching.user(param);
+                            checkParams[i] = userID && (type === "member" ? msg.guild.members : msg.client.users).get(userID) as any;
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     case "guild":
-                        args[i] = msg.client.guilds.get(text) as any;
-                        return args[i] ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            checkParams[i] = msg.client.guilds.get(param) as any;
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     case "channel":
-                        let channelID = ArgumentSDK.Matching.channel(text);
-                        args[i] = channelID && msg.client.channels.get(channelID) as any;
-                        return args[i] ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            let channelID = ArgumentSDK.Matching.channel(param);
+                            checkParams[i] = channelID && msg.client.channels.get(channelID) as any;
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     case "message":
-                        return (args[i] = await msg.channel.fetchMessage(text) as any) ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            if (!(checkParams[argIndex] = await msg.channel.fetchMessage(param) as any)) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
+                    case "role":
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            let roleID = ArgumentSDK.Matching.user(param);
+                            checkParams[argIndex] = msg.guild.roles.get(roleID!) as any;
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     default:
                         return await type(args, msg);
                 }
+
+                args.insert(argIndex, checkParams);
+
+                return null;
             }
         };
     }
 
+    (command.opts.usage! as any).syntax = syntax;
+
     return async (message, next) => {
-        // every idx of the issues array corresponds to idx of args array
-
-        // sets the command metadata for the help command
-        if (!message.client.botkit.commandSystem.metadata[command]) {
-            message.client.botkit.commandSystem.metadata[command] = {syntax, description};
-        }
-
         const issues: Array<string | null> = [];
         let error: boolean = false;
         for (let i = 0; i < validators.length; i++) {
@@ -162,7 +222,7 @@ export const Argumented: (command: string, desc: string, args: Array<ArgumentSDK
         // there's no errors, so we call next and continue the command flow
         if (!error) return next();
         const embed = new RichEmbed();
-        embed.setTitle(`Syntax errors for ${command}`);
+        embed.setTitle(`Syntax errors for ${command.opts.name}`);
         embed.addField("Syntax", `\`${syntax}\``);
         for (let i = 0; i < issues.length; i++) {
             const validator = validators[i];
@@ -173,8 +233,10 @@ export const Argumented: (command: string, desc: string, args: Array<ArgumentSDK
             // just in case the error message is vague.
             let type = args[i] && ` (type: ${args[i]!.type})`;
             if (typeof type !== "string") type = "" as any;
-            embed.addField(name, issue ? `${WARNING_EMOJI} ${issue}${type}` : `${SUCCESS_EMOJI}${type}`, true);
+            embed.addField(name, issue ? `${Constants.WARNING_EMOJI} ${issue}${type}` : `${Constants.SUCCESS_EMOJI}${type}`, true);
         }
         await Promise.all([message.reply(embed), message.warning()]);
     };
 };
+
+export type ArgumentType = ArgumentSDK.ArgumentType;

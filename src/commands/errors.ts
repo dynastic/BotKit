@@ -1,5 +1,5 @@
-import {RichEmbed} from "discord.js";
-import { COLORS, BOT_ICON, ERROR_PREFIX, ERROR_RENDER_FORMAT, ErrorFormat } from "../Constants";
+import { RichEmbed } from "discord.js";
+import Constants from "../Constants";
 import { CommandUtils } from "./util";
 
 export interface CommandErrorOptions {
@@ -8,7 +8,10 @@ export interface CommandErrorOptions {
     code?: string;
     tracking?: string;
     errorPrefix?: boolean;
-    render?: ErrorFormat;
+    render?: Constants.ErrorFormat;
+    fields?: {
+        [key: string]: string;
+    };
 }
 
 /**
@@ -18,7 +21,7 @@ export class CommandError {
     public constructor(private options: CommandErrorOptions) {
         options.title = options.title || "Something went wrong";
         if (options.errorPrefix !== false) {
-            options.message = `${ERROR_PREFIX} ${options.message}`;
+            options.message = `${Constants.ERROR_PREFIX} ${options.message}`;
         }
     }
 
@@ -29,10 +32,15 @@ export class CommandError {
         const embed = new RichEmbed();
         embed.setTitle(this.options.title);
         embed.setDescription(this.options.message);
-        embed.setColor(COLORS.DANGER);
+        embed.setColor(Constants.COLORS.DANGER);
         CommandUtils.specializeEmbed(embed);
         if (this.options.code || this.options.tracking) {
             embed.setAuthor(`${this.options.code ? `${this.options.code} | ` : ''}${this.options.tracking ? `Error ID: ${this.options.tracking}` : ''}`);
+        }
+        if (this.options.fields) {
+            for (let field in this.options.fields) {
+                embed.addField(field, this.options.fields[field], true);
+            }
         }
         return embed;
     }
@@ -48,6 +56,16 @@ export class CommandError {
             if (this.options.code && this.options.tracking) message += " | ";
             if (this.options.tracking) message += `Error ID: ${this.options.tracking}`;
         }
+        if (this.options.fields) {
+            message += "```";
+            
+            for (let field in this.options.fields) {
+                const fieldText = this.options.fields[field];
+                message += `\n${field}\n${''.padStart(field.length, '-')}\n${fieldText}`;
+            }
+
+            message += "\n```";
+        }
         return message;
     }
 
@@ -55,7 +73,7 @@ export class CommandError {
      * Determines which render to return based on the options or constant
      */
     public get render(): string | RichEmbed {
-        return (this.options.render || ERROR_RENDER_FORMAT) === ErrorFormat.EMBED ? this.embed : this.text;
+        return (this.options.render || Constants.ERROR_RENDER_FORMAT) === Constants.ErrorFormat.EMBED ? this.embed : this.text;
     }
 
     public static get FORBIDDEN(): CommandError {

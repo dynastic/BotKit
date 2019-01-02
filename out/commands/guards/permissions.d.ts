@@ -1,7 +1,9 @@
 import { CommandHandler } from "../util";
 /**
- * Basic permissions calculation guard
- * @param message the message
- * @param next the next function
+ * Calculates the permissions
  */
-export declare const Permissions: CommandHandler;
+export declare const PermissionsGuard: CommandHandler;
+/**
+ * Loads permission sets if they are in the first argument
+ */
+export declare const PermSetLoader: CommandHandler;

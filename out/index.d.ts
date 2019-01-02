@@ -1,7 +1,9 @@
-import "./node-additions";
 import { Client } from "discord.js";
-import * as Constants from "./Constants";
 import CommandSystem, { PermissionSetEntityStub } from "./commands";
+import { Context } from "./commands/commands";
+import BKConstants from "./Constants";
+import "./node-additions";
+import "./override";
 export interface RoleOptions {
     moderator: string[];
     admin: string[];
@@ -32,7 +34,7 @@ export interface ApplicationOptions<T extends PermissionSetEntityStub> {
     /**
      * whether to render errors in plaintext or embeds
      */
-    ERROR_RENDER_FORMAT?: Constants.ErrorFormat;
+    ERROR_RENDER_FORMAT?: BKConstants.ErrorFormat;
     /**
      * permission roles
      */
@@ -52,7 +54,7 @@ export interface ApplicationOptions<T extends PermissionSetEntityStub> {
     /**
      * The reference to the superusers on this instance
      */
-    superuserCheck?: SuperuserCheck;
+    superuserCheck?: (id: string) => boolean;
     /**
      * Advanced overrides. Do not modify things without knowing what they do.
      */
@@ -79,9 +81,8 @@ export declare class Application<T extends PermissionSetEntityStub = PermissionS
     init(): Promise<void>;
 }
 export default Application;
-export import Constants = require("./Constants");
-import { Context } from "./commands/commands";
-import { SuperuserCheck } from "./commands/guards/superuser";
-export * from "./util";
-export * from "./db";
 export * from "./commands";
+export declare const Constants: typeof BKConstants;
+export * from "./db";
+export * from "./modules";
+export * from "./util";

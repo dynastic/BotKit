@@ -1,4 +1,4 @@
-import { BaseEntity, PrimaryColumn, ObjectType, DeepPartial, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, CreateDateColumn, DeepPartial, ObjectType, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Security } from "../util";
 
 /**

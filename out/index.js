@@ -2,28 +2,22 @@
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("./node-additions");
 const discord_js_1 = require("discord.js");
-const Constants = __importStar(require("./Constants"));
 const commands_1 = __importDefault(require("./commands"));
+const Constants_1 = __importDefault(require("./Constants"));
+require("./node-additions");
+require("./override");
 /**
  * Initializes the framework
  */
 class Application {
     constructor(options) {
         this.options = options;
-        Constants.applyPatches({
+        Constants_1.default.applyPatches({
             COMMAND_PREFIX: options.COMMAND_PREFIX,
             ERROR_RENDER_FORMAT: options.ERROR_RENDER_FORMAT,
             ROLES: options.ROLES
@@ -44,8 +38,9 @@ class Application {
 }
 exports.Application = Application;
 exports.default = Application;
-exports.Constants = require("./Constants");
-__export(require("./util"));
-__export(require("./db"));
 __export(require("./commands"));
+exports.Constants = Constants_1.default;
+__export(require("./db"));
+__export(require("./modules"));
+__export(require("./util"));
 //# sourceMappingURL=index.js.map

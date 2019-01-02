@@ -52,3 +52,6 @@ export declare namespace PermissionsAPI {
     function nodeSatisfiesSet(node: string, set: PermissionSet): boolean;
     function compositePermissionSet(sets: Array<PermissionSet>): PermissionSet;
 }
+export declare namespace ArrayUtils {
+    function uniqueMerge<K, T>(array1: K[], array2: T[]): Array<K | T>;
+}

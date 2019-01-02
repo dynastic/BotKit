@@ -1,7 +1,22 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
-const Constants_1 = require("../../Constants");
+const Constants_1 = __importDefault(require("../../Constants"));
+/**
+ * This is not a public guard. This is part of the arguments api.
+ *
+ * You may include this guard in a command by using the usage entry on command opts
+ *
+ * opts: {
+ *  usage: {
+ *    description: "Dies",
+ *    args: []
+ *  }
+ * }
+ */
 var ArgumentSDK;
 (function (ArgumentSDK) {
     /**
@@ -28,8 +43,9 @@ var ArgumentSDK;
      */
     let Matching;
     (function (Matching) {
-        const channelRegex = /(?:<#)(\d{17,19})(?:>)/g;
-        const userRegex = /(?:<@!?)(1|\d{17,19})(?:>)/g;
+        const channelRegex = /(?:<?#?)(\d{17,19})(?:>?)/g;
+        const userRegex = /(?:<?@?!?)(\d{17,19}|1)(?:>?)/g;
+        const roleRegex = /(?:<?@?&?)(\d{17,19}|1)(?:>?)/g;
         /**
          * Extracts the channel ID
          * @param str the string to match
@@ -48,6 +64,11 @@ var ArgumentSDK;
             const match = userRegex.exec(str);
             return match && match[1];
         };
+        Matching.role = (role) => {
+            roleRegex.lastIndex = 0;
+            const match = roleRegex.exec(role);
+            return match && match[1];
+        };
     })(Matching = ArgumentSDK.Matching || (ArgumentSDK.Matching = {}));
 })(ArgumentSDK = exports.ArgumentSDK || (exports.ArgumentSDK = {}));
 /**
@@ -56,26 +77,28 @@ var ArgumentSDK;
  * @param args The command arguments
  * @param command The command itself
  */
-exports.Argumented = (command, description, args) => {
+exports.Argumented = (command) => {
     // every idx of validators array corresponds to args array
     const validators = [];
-    let syntax = `${Constants_1.COMMAND_PREFIX}${command}`;
-    for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
+    let syntax = `${Constants_1.default.COMMAND_PREFIX}${command.opts.name}`;
+    const args = command.opts.usage.args || [];
+    for (let argIndex = 0; argIndex < args.length; argIndex++) {
+        const arg = args[argIndex];
         if (!arg) {
             // there's no argument data for this, including a name. we use param{idx} as the name
-            syntax += ` <param${i}>`;
-            validators[i] = null;
+            syntax += ` <param${argIndex}>`;
+            validators[argIndex] = null;
             continue;
         }
         const { name, type, unlimited, required } = arg;
         // appends this argument slot to the syntax str
         syntax += ` <${unlimited ? '...' : ''}${name}${required === false ? "?" : ""}>`;
-        validators[i] = {
+        validators[argIndex] = {
             name,
             validator: async (args, msg) => {
-                let text = unlimited ? args[i] = args.slice(i).join(" ") : args[i];
-                if (!text || text.length === 0) {
+                let checkParams = unlimited ? args.slice(argIndex) : [args[argIndex]];
+                checkParams = checkParams.filter(param => typeof param !== "undefined");
+                if (checkParams.length === 0) {
                     if (required !== false) {
                         return "This argument is required.";
                     }
@@ -84,39 +107,77 @@ exports.Argumented = (command, description, args) => {
                 switch (type) {
                     case "string":
                         // there's really nothing to validate if it's a string, it's already a string.
-                        return null;
+                        break;
                     // boolean and number are identical in how they're parsed, so they're the same handling code
                     case "boolean":
                     case "number":
-                        const result = ArgumentSDK.parse(args[i], type, `Must be a ${type}.`);
-                        args[i] = result.value;
-                        return result.error;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            const result = ArgumentSDK.parse(param, type, `Must be a ${type}.`);
+                            checkParams[i] = result.value;
+                            if (result.error) {
+                                return result.error;
+                            }
+                        }
+                        break;
                     case "user":
                     case "member":
-                        let userID = ArgumentSDK.Matching.user(text);
-                        args[i] = userID && (type === "member" ? msg.guild.members : msg.client.users).get(userID);
-                        return args[i] ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            let userID = ArgumentSDK.Matching.user(param);
+                            checkParams[i] = userID && (type === "member" ? msg.guild.members : msg.client.users).get(userID);
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     case "guild":
-                        args[i] = msg.client.guilds.get(text);
-                        return args[i] ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            checkParams[i] = msg.client.guilds.get(param);
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     case "channel":
-                        let channelID = ArgumentSDK.Matching.channel(text);
-                        args[i] = channelID && msg.client.channels.get(channelID);
-                        return args[i] ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            let channelID = ArgumentSDK.Matching.channel(param);
+                            checkParams[i] = channelID && msg.client.channels.get(channelID);
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     case "message":
-                        return (args[i] = await msg.channel.fetchMessage(text)) ? null : `Must be a ${type}`;
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            if (!(checkParams[argIndex] = await msg.channel.fetchMessage(param))) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
+                    case "role":
+                        for (let i = 0; i < checkParams.length; i++) {
+                            const param = checkParams[i];
+                            let roleID = ArgumentSDK.Matching.user(param);
+                            checkParams[argIndex] = msg.guild.roles.get(roleID);
+                            if (!checkParams[i]) {
+                                return `Must be a ${type}`;
+                            }
+                        }
+                        break;
                     default:
                         return await type(args, msg);
                 }
+                args.insert(argIndex, checkParams);
+                return null;
             }
         };
     }
+    command.opts.usage.syntax = syntax;
     return async (message, next) => {
-        // every idx of the issues array corresponds to idx of args array
-        // sets the command metadata for the help command
-        if (!message.client.botkit.commandSystem.metadata[command]) {
-            message.client.botkit.commandSystem.metadata[command] = { syntax, description };
-        }
         const issues = [];
         let error = false;
         for (let i = 0; i < validators.length; i++) {
@@ -131,7 +192,7 @@ exports.Argumented = (command, description, args) => {
         if (!error)
             return next();
         const embed = new discord_js_1.RichEmbed();
-        embed.setTitle(`Syntax errors for ${command}`);
+        embed.setTitle(`Syntax errors for ${command.opts.name}`);
         embed.addField("Syntax", `\`${syntax}\``);
         for (let i = 0; i < issues.length; i++) {
             const validator = validators[i];
@@ -143,7 +204,7 @@ exports.Argumented = (command, description, args) => {
             let type = args[i] && ` (type: ${args[i].type})`;
             if (typeof type !== "string")
                 type = "";
-            embed.addField(name, issue ? `${Constants_1.WARNING_EMOJI} ${issue}${type}` : `${Constants_1.SUCCESS_EMOJI}${type}`, true);
+            embed.addField(name, issue ? `${Constants_1.default.WARNING_EMOJI} ${issue}${type}` : `${Constants_1.default.SUCCESS_EMOJI}${type}`, true);
         }
         await Promise.all([message.reply(embed), message.warning()]);
     };

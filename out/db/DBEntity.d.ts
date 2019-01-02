@@ -1,4 +1,4 @@
-import { BaseEntity, ObjectType, DeepPartial } from "typeorm";
+import { BaseEntity, DeepPartial, ObjectType } from "typeorm";
 /**
  * An enhanced base class for database entities
  */

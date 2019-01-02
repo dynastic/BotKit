@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import * as CommandUtil from "./util";
 import Application from "..";
-import * as Guards from "./guards";
 export interface CommandSystemOptions {
     directory?: string;
     preloadExclude?: string[];
@@ -23,18 +22,16 @@ export default class CommandSystem {
         [key: string]: CommandUtil.Command | undefined;
     };
     /**
-     * Command metadata, for help etc.
-     */
-    metadata: CommandMetadata;
-    /**
      * Guards to run on all commands
      */
     private readonly globalGuards;
     constructor(options: CommandSystemOptions);
+    messageIntake(message: Message): Promise<void>;
     /**
      * Loads commands into the tracking system
      */
     init(): Promise<void>;
+    loadCommands(commands: CommandUtil.Command[] | CommandUtil.Commands): Promise<void>;
     /**
      * Executes the command initiated by the message
      * @param message the message initiating a command
@@ -42,7 +39,7 @@ export default class CommandSystem {
     executeCommand(message: Message): Promise<void>;
 }
 export * from "./util";
-export { Guards };
+export * from "./guards";
 export * from "./errors";
 export * from "./api";
 export * from "./permissions";

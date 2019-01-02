@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["commands/permissions/index.ts"],"names":[],"mappings":";;;;;AAAA,6BAAwB;AACxB,+BAAyC;AAA/B,gCAAA,cAAc,CAAA","sourcesContent":["export * from \"./types\";\nexport  { PermissionsAPI } from \"./util\";"]}
+{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["commands/permissions/index.ts"],"names":[],"mappings":";;;;;AAAA,6BAAwB;AACxB,4BAAuB","sourcesContent":["export * from \"./types\";\nexport * from \"./util\";\n"]}

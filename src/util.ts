@@ -1,7 +1,8 @@
+import uintformat from "biguint-format";
 import crypto from "crypto";
 import flake from "flake-idgen";
-import uintformat from "biguint-format";
 import * as winston from "winston";
+import { Constants } from ".";
 
 const flaker = new flake({id: Number.parseInt(process.env.SERVER_ID as string) || 0, epoch: 1514764800000});
 
@@ -40,21 +41,6 @@ export namespace Miscellaneous {
     }
 }
 
-export namespace ArrayUtils {
-    export function uniqueMerge<K, T>(array1: K[], array2: T[]): Array<K | T> {
-        array2.forEach(val => array1.indexOf(<any>val as K) > -1 ? undefined : array1.push(<any>val as K));
-        return array1;
-    }
-
-    export function uniqueConcat<K, T>(array1: K[], array2: T[]): Array<K | T> {
-        const uniqueArray: Array<K | T> = [];
-
-        (<any>array1 as T[]).concat(array2).forEach(val => uniqueArray.indexOf(val) > -1 ? undefined : uniqueArray.push(val));
-
-        return uniqueArray;
-    }
-}
-
 export const Logger = new winston.Logger({
     transports: [
         new winston.transports.Console({
@@ -66,3 +52,14 @@ export const Logger = new winston.Logger({
     ],
     exitOnError: false,
 });
+
+/**
+ * Computes the inheritence-based role list
+ */
+export function calculateInclusiveRoles() {
+   const moderator: {[key: string]: boolean} = {}, admin: {[key: string]: boolean} = {}, root: {[key: string]: boolean} = {};
+   for (let rootID of Constants.ROLES.root) moderator[rootID] = admin[rootID] = root[rootID] = true;
+   for (let adminID of Constants.ROLES.admin) moderator[adminID] = admin[adminID] = true;
+   for (let moderatorID of Constants.ROLES.moderator) moderator[moderatorID] = true;
+   return {moderator: Object.keys(moderator), admin: Object.keys(admin), root: Object.keys(root)};
+}

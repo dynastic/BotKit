@@ -1,6 +1,6 @@
 {
   "name": "dd-botkit",
-  "version": "1.0.32",
+  "version": "1.0.49",
   "main": "out/index.js",
   "repository": "https://github.com/dynastic/bot.git",
   "author": "Dynastic Development <hello@dynastic.co>",

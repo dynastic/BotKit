@@ -10,10 +10,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const biguint_format_1 = __importDefault(require("biguint-format"));
 const crypto_1 = __importDefault(require("crypto"));
 const flake_idgen_1 = __importDefault(require("flake-idgen"));
-const biguint_format_1 = __importDefault(require("biguint-format"));
 const winston = __importStar(require("winston"));
+const _1 = require(".");
 const flaker = new flake_idgen_1.default({ id: Number.parseInt(process.env.SERVER_ID) || 0, epoch: 1514764800000 });
 var Security;
 (function (Security) {
@@ -53,20 +54,6 @@ var Miscellaneous;
     }
     Miscellaneous.callbackPromise = callbackPromise;
 })(Miscellaneous = exports.Miscellaneous || (exports.Miscellaneous = {}));
-var ArrayUtils;
-(function (ArrayUtils) {
-    function uniqueMerge(array1, array2) {
-        array2.forEach(val => array1.indexOf(val) > -1 ? undefined : array1.push(val));
-        return array1;
-    }
-    ArrayUtils.uniqueMerge = uniqueMerge;
-    function uniqueConcat(array1, array2) {
-        const uniqueArray = [];
-        array1.concat(array2).forEach(val => uniqueArray.indexOf(val) > -1 ? undefined : uniqueArray.push(val));
-        return uniqueArray;
-    }
-    ArrayUtils.uniqueConcat = uniqueConcat;
-})(ArrayUtils = exports.ArrayUtils || (exports.ArrayUtils = {}));
 exports.Logger = new winston.Logger({
     transports: [
         new winston.transports.Console({
@@ -78,4 +65,18 @@ exports.Logger = new winston.Logger({
     ],
     exitOnError: false,
 });
+/**
+ * Computes the inheritence-based role list
+ */
+function calculateInclusiveRoles() {
+    const moderator = {}, admin = {}, root = {};
+    for (let rootID of _1.Constants.ROLES.root)
+        moderator[rootID] = admin[rootID] = root[rootID] = true;
+    for (let adminID of _1.Constants.ROLES.admin)
+        moderator[adminID] = admin[adminID] = true;
+    for (let moderatorID of _1.Constants.ROLES.moderator)
+        moderator[moderatorID] = true;
+    return { moderator: Object.keys(moderator), admin: Object.keys(admin), root: Object.keys(root) };
+}
+exports.calculateInclusiveRoles = calculateInclusiveRoles;
 //# sourceMappingURL=util.js.map

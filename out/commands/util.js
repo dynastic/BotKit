@@ -3,11 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("./api");
+const discord_js_1 = require("discord.js");
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const path_1 = __importDefault(require("path"));
-const discord_js_1 = require("discord.js");
-const Constants_1 = require("../Constants");
+const Constants_1 = __importDefault(require("../Constants"));
+require("./api");
+const arguments_1 = require("./guards/arguments");
 var AccessLevel;
 (function (AccessLevel) {
     AccessLevel["EVERYONE"] = "global";
@@ -100,7 +101,7 @@ var CommandUtils;
                 command.opts.guards = guards.concat(command.opts.guards || []);
             }
             // commands inherit access levels if they don't have one defined
-            if (typeof access === "number" && typeof command.opts.access === "undefined") {
+            if (access && !command.opts.access) {
                 command.opts.access = access;
             }
             if (typeof category === "string" && typeof command.opts.category === "undefined") {
@@ -142,6 +143,14 @@ var CommandUtils;
         return commands;
     }
     CommandUtils.parse = parse;
+    async function preloadMetadata(commands) {
+        commands.forEach(command => {
+            if (command.opts.usage) {
+                (command.opts.guards || (command.opts.guards = [])).unshift(arguments_1.Argumented(command));
+            }
+        });
+    }
+    CommandUtils.preloadMetadata = preloadMetadata;
     /**
      * Parses a directory and all of it's sub-directories for commands.
      *
@@ -185,6 +194,7 @@ var CommandUtils;
      * Executes all middleware on a commmand, resolves when done
      * @param message
      * @param middleware
+     * @returns whether this was successful
      */
     function executeMiddleware(message, middleware) {
         return new Promise((resolve, reject) => {
@@ -215,10 +225,45 @@ var CommandUtils;
      */
     CommandUtils.specializeEmbed = (embed) => {
         if (embed instanceof discord_js_1.RichEmbed)
-            embed.setFooter(Constants_1.BOT_AUTHOR, Constants_1.BOT_ICON);
+            embed.setFooter(Constants_1.default.BOT_AUTHOR, Constants_1.default.BOT_ICON);
         else
-            embed.footer = { text: Constants_1.BOT_AUTHOR, icon_url: Constants_1.BOT_ICON };
+            embed.footer = { text: Constants_1.default.BOT_AUTHOR, icon_url: Constants_1.default.BOT_ICON };
         return embed;
     };
+    async function runCommand(baseMessage, command, user) {
+        const actionLog = [];
+        user = user || baseMessage.author;
+        const trackAction = result => {
+            actionLog.push(result);
+            return baseMessage;
+        };
+        command = `${Constants_1.default.COMMAND_PREFIX}${command}`;
+        baseMessage = new discord_js_1.Message(baseMessage.channel, { ...baseMessage.__data, author: user }, baseMessage.client);
+        baseMessage.id = null;
+        baseMessage.content = command;
+        baseMessage.pinned = false;
+        baseMessage.tts = false;
+        baseMessage.embeds = [];
+        baseMessage.attachments = new discord_js_1.Collection();
+        baseMessage.createdTimestamp = new Date().getTime();
+        baseMessage.editedTimestamp = null;
+        baseMessage.reactions = new discord_js_1.Collection();
+        baseMessage.mentions = new discord_js_1.MessageMentions(baseMessage);
+        baseMessage.webhookID = null;
+        baseMessage.delete = async () => trackAction({ deleted: true });
+        baseMessage.reply = async (...args) => trackAction({ reply: args });
+        baseMessage.edit = async (...args) => trackAction({ edit: args });
+        baseMessage.pin = async () => trackAction({ pinned: true });
+        baseMessage.unpin = async () => trackAction({ unpinned: true });
+        baseMessage.complete = baseMessage.success = baseMessage.done = async () => trackAction({ completed: true });
+        baseMessage.warning = baseMessage.danger = baseMessage.caution = async () => trackAction({ warning: true });
+        baseMessage.renderError = async (error) => trackAction({ error });
+        await baseMessage.client.botkit.commandSystem.messageIntake(baseMessage);
+        return actionLog.reduce((obj, c) => {
+            Object.keys(c).forEach(key => obj[key] = c[key]);
+            return obj;
+        }, {});
+    }
+    CommandUtils.runCommand = runCommand;
 })(CommandUtils = exports.CommandUtils || (exports.CommandUtils = {}));
 //# sourceMappingURL=util.js.map

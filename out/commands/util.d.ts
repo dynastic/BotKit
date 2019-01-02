@@ -1,7 +1,7 @@
+import { Message, MessageEditOptions, MessageOptions, RichEmbed, RichEmbedOptions, User } from "discord.js";
 import "./api";
-import { Message, RichEmbed, RichEmbedOptions } from "discord.js";
 import { CommandError } from "./errors";
-import { ArgumentSDK } from "./guards";
+import { ArgumentSDK, ArgumentType } from "./guards/arguments";
 export declare enum AccessLevel {
     EVERYONE = "global",
     MODERATOR = "moderator",
@@ -45,9 +45,10 @@ declare module 'discord.js' {
          */
         fail(): Promise<void>;
         /**
-         *
+         * Render a command error
+         * @param error error to render
          */
-        reject(error?: CommandError | undefined): Promise<void>;
+        renderError(error: CommandError): Promise<void>;
         /**
          * Reacts with a warning indicator
          */
@@ -63,7 +64,7 @@ declare module 'discord.js' {
         /**
          * The arguments provided for this command
          */
-        args: ArgumentSDK.ArgumentType[];
+        args: ArgumentType[];
         /**
          * The command being executd by this message
          */
@@ -82,6 +83,20 @@ declare module 'discord.js' {
          * Whether the command sender has permission to execute this command
          */
         hasPermission: boolean;
+        /**
+         * Whether the command has been errored
+         */
+        errored: boolean;
+        /**
+         * Initial data passed to setup()
+         */
+        __data: any;
+        /**
+         * Initialize the message object
+         * @param data the data
+         * @private
+         */
+        setup(data: any): any;
     }
 }
 export interface CommandHandler {
@@ -103,6 +118,10 @@ export interface Command {
          */
         data?: {
             [key: string]: any;
+        };
+        usage?: {
+            description?: string;
+            args?: Array<ArgumentSDK.Argument | undefined>;
         };
     } & CommandOptions;
     handler: CommandHandler;
@@ -140,6 +159,7 @@ export declare namespace CommandUtils {
      * @param module the plain object to parse
      */
     function parse(module: any, base?: boolean): Promise<Command[]>;
+    function preloadMetadata(commands: Command[]): Promise<void>;
     /**
      * Parses a directory and all of it's sub-directories for commands.
      *
@@ -156,6 +176,7 @@ export declare namespace CommandUtils {
      * Executes all middleware on a commmand, resolves when done
      * @param message
      * @param middleware
+     * @returns whether this was successful
      */
     function executeMiddleware(message: Message, middleware: CommandHandler[]): Promise<void>;
     /**
@@ -163,4 +184,15 @@ export declare namespace CommandUtils {
      * @param embed embed to brand
      */
     const specializeEmbed: (embed: RichEmbed | RichEmbedOptions) => RichEmbed | RichEmbedOptions;
+    interface CommandResult {
+        deleted?: boolean;
+        reply?: [string | MessageOptions | undefined, MessageOptions | undefined];
+        edit?: [string, MessageEditOptions | RichEmbed | undefined];
+        pinned?: boolean;
+        unpinned?: boolean;
+        completed?: boolean;
+        warning?: boolean;
+        error?: CommandError;
+    }
+    function runCommand(baseMessage: Message, command: string, user?: User): Promise<CommandResult>;
 }

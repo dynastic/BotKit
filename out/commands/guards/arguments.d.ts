@@ -1,5 +1,17 @@
-import { Channel, Guild, GuildMember, Message, User } from "discord.js";
-import { CommandHandler } from "../util";
+import { Channel, Guild, GuildMember, Message, Role, User } from "discord.js";
+import { Command, CommandHandler } from "../util";
+/**
+ * This is not a public guard. This is part of the arguments api.
+ *
+ * You may include this guard in a command by using the usage entry on command opts
+ *
+ * opts: {
+ *  usage: {
+ *    description: "Dies",
+ *    args: []
+ *  }
+ * }
+ */
 export declare namespace ArgumentSDK {
     /**
      * An argument slot.
@@ -9,11 +21,11 @@ export declare namespace ArgumentSDK {
         /**
          * If the type is a function, it takes the place of a validator function and returns the error or null.
          */
-        type: "string" | "boolean" | "number" | "user" | "member" | "guild" | "channel" | "message" | Validator;
+        type: "string" | "boolean" | "number" | "user" | "member" | "guild" | "channel" | "message" | "role" | Validator;
         unlimited?: boolean;
         required?: boolean;
     }
-    type ArgumentType = string | User | GuildMember | Guild | Channel | Message;
+    type ArgumentType = string | User | GuildMember | Guild | Channel | Message | Role;
     /**
      * A function that inspects the arguments and returns errors, or null.
      *
@@ -45,6 +57,7 @@ export declare namespace ArgumentSDK {
          * @param str the string to match
          */
         const user: (str: string) => string | null;
+        const role: (role: string) => string | null;
     }
 }
 /**
@@ -53,4 +66,5 @@ export declare namespace ArgumentSDK {
  * @param args The command arguments
  * @param command The command itself
  */
-export declare const Argumented: (command: string, desc: string, args: Array<ArgumentSDK.Argument | undefined>) => CommandHandler;
+export declare const Argumented: (command: Command) => CommandHandler;
+export declare type ArgumentType = ArgumentSDK.ArgumentType;

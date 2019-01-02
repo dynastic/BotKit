@@ -1,1 +1,1 @@
-{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["commands/guards/index.ts"],"names":[],"mappings":";;;;;AAAA,iCAA4B;AAC5B,mCAA8B","sourcesContent":["export * from \"./arguments\";\nexport * from \"./environment\";"]}
+{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["commands/guards/index.ts"],"names":[],"mappings":";;;;;AAAA,uCAAkC;AAClC,mCAA8B;AAC9B,6CAA8C;AAArC,sCAAA,aAAa,CAAA","sourcesContent":["export * from \"./bot-permisisons\";\nexport * from \"./environment\";\nexport { PermSetLoader } from \"./permissions\";\n"]}
