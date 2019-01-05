@@ -1,21 +1,20 @@
-import { Client, Collection, Guild, Message, RichEmbed, TextChannel, User } from 'discord.js';
+import { Client, Guild, Message, RichEmbed, TextChannel, User } from 'discord.js';
 import util from 'util';
 import { Application } from '..';
-import Constants from '../Constants';
 import { CommandError } from './errors';
-import { AccessLevel, Command, Commands } from './util';
-
+import { Command } from './util';
 
 export const HelpCommand: Command = {
     opts: {
         name: "help",
-        access: AccessLevel.EVERYONE,
         usage: {
             description: "Provides help about all commands in this bot",
             args: [
                 {
                     name: "command",
-                    type: "string", required: false
+                    type: "string",
+                    required: false,
+                    description: "The command to look up"
                 }
             ]
         }
@@ -36,8 +35,23 @@ export const HelpCommand: Command = {
             const { description, syntax } = <any>usage as { [key: string]: string };
             const embed = new RichEmbed();
             embed.setTitle(`Information about \`${command.opts.name}\``);
-            if (description) embed.addField("Description", description);
-            if (syntax) embed.addField("Syntax", `\`${syntax}\``);
+            if (description) embed.setDescription(description);
+            if (syntax) embed.addField("Syntax", `\`${message.commandPrefix}${syntax}\``);
+            if (usage.args) {
+                usage.args.forEach((arg, i) => {
+                    if (!arg) {
+                        return;
+                    }
+                    const title = `${i}${arg.unlimited ? "..." : "."} ${arg.name.capitalize()}`;
+                    let body = "";
+
+                    if (arg.description) body += `Description: \`${arg.description}\`\n`;
+                    body += `Type: \`${arg.type}\`\n`;
+                    body += `Optional: \`${arg.required === false}\``;
+
+                    embed.addField(title, body);
+                });
+            }
             await message.reply(embed);
             return;
         }
@@ -50,7 +64,7 @@ export const HelpCommand: Command = {
             const command = loadedCommands[commandName];
             if (!command) continue;
             const category = command.opts.category || "General";
-            (commands[category] || (commands[category] = [])).push(`• \`${Constants.COMMAND_PREFIX}${command.opts.name}\``);
+            (commands[category] || (commands[category] = [])).push(`• \`${message.commandPrefix}${command.opts.name}\``);
         }
 
         const helpEmbed = new RichEmbed();
@@ -67,11 +81,12 @@ export const HelpCommand: Command = {
     }
 };
 
+const pingSuffix = () => ['?', '!', '?!', '!?', '?!?', '!?!', '!!?', '?!!', '!?!'].random();
+
 export const PingCommand: Command = {
     opts: {
         name: "ping",
         category: "Diagnostics",
-        access: AccessLevel.EVERYONE,
         usage: {
             description: "Calculates the latency between the bot and server"
         }
@@ -79,9 +94,27 @@ export const PingCommand: Command = {
     handler: async (message, next) => {
         const startTime = Date.now();
 
-        const msg = await message.channel.send("Ping...") as Message;
+        const embed = new RichEmbed();
+        embed.setTitle(`Ping${pingSuffix()} Ping${pingSuffix()} Ping${pingSuffix()}`);
+        embed.setDescription(`Ping${pingSuffix()}`);
 
-        await msg.edit(`Ponged in ${msg.createdTimestamp - startTime}ms`);
+        let msg: Message;
+        const reloadVariables = () => {
+            embed.fields = [];
+
+            const startToNow = Date.now() - message.metrics.start;
+
+            embed.addField(`Command runtime duration  `, `${startToNow}ms`, true);
+            if (msg) embed.addField(`Message ponged in`, `${msg.createdTimestamp - startTime}ms`, true);
+        }
+        reloadVariables();
+
+        msg = await message.channel.send(embed) as Message;
+
+        reloadVariables();
+        embed.setDescription("***PONG.***");
+
+        await msg.edit(embed);
     }
 };
 
@@ -100,7 +133,6 @@ export const EvalCommand: Command = {
     opts: {
         name: "eval",
         category: "Diagnostics",
-        access: AccessLevel.ROOT,
         node: "debug.eval",
         usage: {
             description: "Evaluates the given code",
@@ -109,7 +141,8 @@ export const EvalCommand: Command = {
                     type: "string",
                     name: "code",
                     required: true,
-                    unlimited: true
+                    unlimited: true,
+                    description: "The code you want to evaluate"
                 }
             ]
         }

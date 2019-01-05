@@ -1,20 +1,26 @@
-import {Message} from "discord.js";
-
-import * as CommandUtil from "./util";
-import Constants from "../Constants";
+import { Message } from "discord.js";
 import path from "path";
-import {CommandError} from "./errors";
 import Application from "..";
-
-import * as Guards from "./guards";
-import { isBoolean } from "util";
+import Constants from "../Constants";
+import { CommandError } from "./errors";
 import { PermissionsGuard } from "./guards/permissions";
+import * as CommandUtil from "./util";
 
 export interface CommandSystemOptions {
     directory?: string;
     preloadExclude?: string[];
     automaticCategoryNames?: boolean;
     app: Application;
+    globalGuards?: CommandUtil.CommandHandler[];
+    /**
+     * Hooks for various BotKit events
+     */
+    hooks?: {
+        /**
+         * Called before BotKit begins processing a message.
+         */
+        preMessageHandling?: (message: Message) => Promise<void>
+    }
 }
 
 const stripStartEnd = (token: string, str: string) => {
@@ -29,11 +35,13 @@ export interface CommandMetadata {
     } | undefined;
 }
 
+const COMMAND_NAME_REGEX = /^[a-z0-9\-]+$/i;
+
 /**
  * A system which loads and tracks commands
  */
 export default class CommandSystem {
-    public commands: {[key: string]: CommandUtil.Command | undefined} = {};
+    public commands: { [key: string]: CommandUtil.Command | undefined } = {};
 
     /**
      * Guards to run on all commands
@@ -41,20 +49,22 @@ export default class CommandSystem {
     private readonly globalGuards: CommandUtil.CommandHandler[] = [];
 
     public constructor(private options: CommandSystemOptions) {
-        this.globalGuards = [PermissionsGuard];
+        this.globalGuards = [PermissionsGuard].concat(options.globalGuards || []);
 
         options.app.client.on("message", message => this.messageIntake(message));
     }
 
     public async messageIntake(message: Message) {
+        if (this.options.hooks && this.options.hooks.preMessageHandling) await this.options.hooks.preMessageHandling(message);
+        message.commandPrefix = message.commandPrefix || Constants.COMMAND_PREFIX;
         if (typeof message.isCommand === "undefined") {
-            message.isCommand = message.content.startsWith(Constants.COMMAND_PREFIX);
+            message.isCommand = message.content.startsWith(message.commandPrefix);
         }
 
         if (!message.isCommand) return;
-    
+
         if (!message.args) {
-            message.args = message.content.substring(Constants.COMMAND_PREFIX.length).trim().match(Constants.ARGUMENT_REGEX) as string[] || [];
+            message.args = message.content.substring(message.commandPrefix.length).trim().match(Constants.ARGUMENT_REGEX) as string[] || [];
             for (let i = 0; i < message.args.length; i++) {
                 message.args[i] = stripStartEnd('"', message.args[i] as string);
                 message.args[i] = stripStartEnd("'", message.args[i] as string);
@@ -62,16 +72,23 @@ export default class CommandSystem {
         }
 
         if (message.args.length === 0) return;
-    
+
+        const [commandName] = message.args as string[];
+
+        // Do not recognize non-alphanum command names.
+        if (!commandName.match(COMMAND_NAME_REGEX)) {
+            return;
+        }
+
         if (!message.command) {
-            message.command = this.options.app.commandSystem.commands[message.args[0] as string]!;
+            message.command = this.options.app.commandSystem.commands[commandName]!;
             message.args.shift();
         }
 
-        if (!message.cleanContent.startsWith(Constants.COMMAND_PREFIX)) return;
+        message.metrics.finishedPreprocessingTime = Date.now();
+
         await this.executeCommand(message);
     }
-
     /**
      * Loads commands into the tracking system
      */
@@ -118,13 +135,14 @@ export default class CommandSystem {
         const command = message.command;
         if (!command || command.opts.enabled === false) {
             await message.renderError(new CommandError({
-                message: `That command doesn't exist! Try \`${Constants.COMMAND_PREFIX}help\` for a list of commands.`,
+                message: `That command doesn't exist! Try \`${message.commandPrefix}help\` for a list of commands.`,
                 title: "Unknown command"
             }));
             return;
         }
         try {
             await CommandUtil.CommandUtils.executeMiddleware(message, this.globalGuards.concat(command.opts.guards || []));
+            message.metrics.finishedGuardProcessingTime = Date.now();
             if (message.errored) return;
             await command.handler(message, sendError);
         } catch (e) {
@@ -133,8 +151,8 @@ export default class CommandSystem {
     }
 }
 
-export * from "./util";
-export * from "./guards";
-export * from "./errors";
 export * from "./api";
+export * from "./errors";
+export * from "./guards";
 export * from "./permissions";
+export * from "./util";

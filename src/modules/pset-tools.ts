@@ -2,12 +2,8 @@ import { GuildMember } from "discord.js";
 import { inspect } from "util";
 import { CommandError } from "../commands/errors";
 import { PermSetLoader } from "../commands/guards";
-import { EnvironmentGuard } from "../commands/guards/Environment";
 import { PermissionSetEntity } from "../commands/permissions/types";
 import { Command, Commands } from "../commands/util";
-
-
-const PermissionsAccessLevel = "admin" as any;
 
 /**
  * Command builder for a membership target modifier
@@ -18,7 +14,6 @@ const TargetModifier: (target: "role" | "member", state: "add" | "del") => Comma
     opts: {
         name: `${state}-${target}-pset`,
         node: "perm.manage-members",
-        access: PermissionsAccessLevel,
         usage: {
             // ternary stuff in interpolation is for grammar
             description: `${state === "add" ? "Add" : "Remove"} ${target}s ${state === "add" ? "to" : "from"} a permission set`,
@@ -26,11 +21,13 @@ const TargetModifier: (target: "role" | "member", state: "add" | "del") => Comma
                 {
                     type: "string",
                     name: "pset-name",
+                    description: "The set to look up",
                     required: true
                 },
                 {
                     type: target === "member" ? "member" : "string",
                     name: `${target}-ids`,
+                    description: "The targets to add/remove",
                     required: true,
                     unlimited: true
                 }
@@ -62,7 +59,6 @@ const PermissionStateModifier: (action: "grant" | "negate" | "reset") => Command
     opts: {
         name: `${action}-perm`,
         node: "perm.manage-perm",
-        access: PermissionsAccessLevel,
         usage: {
             // ternary stuff in interpolation is for grammar
             description: `${action.capitalize()} a permission ${action === "negate" ? "from" : "in"} a permission set`,
@@ -70,11 +66,13 @@ const PermissionStateModifier: (action: "grant" | "negate" | "reset") => Command
                 {
                     type: "string",
                     name: "name",
+                    description: "The set to modify",
                     required: true
                 },
                 {
                     type: "string",
                     name: "permissions",
+                    description: "The permissions to set",
                     required: true,
                     unlimited: true
                 }
@@ -99,7 +97,7 @@ const PermissionStateModifier: (action: "grant" | "negate" | "reset") => Command
 
 export const PsetTools: Commands = {
     opts: {
-        guards: [EnvironmentGuard(['text'])],
+        environments: ['text'],
         category: "Permissions"
     },
     commands: [
@@ -107,13 +105,13 @@ export const PsetTools: Commands = {
             opts: {
                 name: "create-pset",
                 node: "perm.create-pset",
-                access: PermissionsAccessLevel,
                 usage: {
                     description: "Create a permission set",
                     args: [
                         {
                             type: "string",
                             name: "name",
+                            description: "The name of the set being created",
                             required: true
                         }
                     ]
@@ -123,10 +121,11 @@ export const PsetTools: Commands = {
              * Creates a bare permission set
              */
             handler: async (message, next) => {
-                const [name] = message.args;
+                const [ name ] = message.args as string[];
                 const guild = message.guild.id;
+                const entity = await message.client.botkit.options.permissionsEntity!.findOne({name, guild});
 
-                if (!(await message.client.botkit.options.permissionsEntity!.isNameFree(name.toString(), guild))) {
+                if (entity) {
                     return next(new CommandError({
                         title: "Name Unavailable",
                         message: `The name \`${name}\` is already taken. Please choose another name.`
@@ -152,13 +151,13 @@ export const PsetTools: Commands = {
             opts: {
                 name: "get-pset",
                 node: "perm.get-pset",
-                access: PermissionsAccessLevel,
                 usage: {
                     description: "Get a permission set",
                     args: [
                         {
                             type: "string",
                             name: "name",
+                            description: "The set to look up",
                             required: true
                         }
                     ]

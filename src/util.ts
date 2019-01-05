@@ -39,6 +39,18 @@ export namespace Miscellaneous {
         struct.promise = new Promise((resolve) => struct.cb = resolve);
         return struct as any;
     }
+
+    export function sortNumbersInObject(obj: {[key: string]: number}) {
+        const sortable: Array<[string, number]> = [];
+
+        for (let key in obj) {
+            sortable.push([key, obj[key]]);
+        }
+
+        sortable.sort((a, b) => a[1] - b[1]);
+
+        return sortable;
+    }
 }
 
 export const Logger = new winston.Logger({
@@ -52,14 +64,3 @@ export const Logger = new winston.Logger({
     ],
     exitOnError: false,
 });
-
-/**
- * Computes the inheritence-based role list
- */
-export function calculateInclusiveRoles() {
-   const moderator: {[key: string]: boolean} = {}, admin: {[key: string]: boolean} = {}, root: {[key: string]: boolean} = {};
-   for (let rootID of Constants.ROLES.root) moderator[rootID] = admin[rootID] = root[rootID] = true;
-   for (let adminID of Constants.ROLES.admin) moderator[adminID] = admin[adminID] = true;
-   for (let moderatorID of Constants.ROLES.moderator) moderator[moderatorID] = true;
-   return {moderator: Object.keys(moderator), admin: Object.keys(admin), root: Object.keys(root)};
-}

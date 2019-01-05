@@ -9,7 +9,7 @@ namespace Constants {
 
     export let DELETE_EMOJI = '🗑';
 
-    export let COMMAND_PREFIX = '*';
+    export let COMMAND_PREFIX: string = '*';
 
     export let ARGUMENT_REGEX = /[^'"\s]+|(?:["'])([^'"]+)(?:["'])/g;
 
@@ -29,27 +29,21 @@ namespace Constants {
 
     export let ERROR_RENDER_FORMAT: ErrorFormat = ErrorFormat.EMBED;
 
-    export let ROLES: RoleOptions = {moderator: [], admin: [], root: []};
-
     export const ERROR_PREFIX = "**Uh oh!**";
 
     export interface PatchableConstants {
-        SUCCESS_EMOJI: string;
-        FAIL_EMOJI: string;
-        WARNING_EMOJI: string;
-        DELETE_EMOJI: string;
-        COMMAND_PREFIX: string;
-        ARGUMENT_REGEX: string;
-        BOT_ICON: string;
-        BOT_AUTHOR: string;
-        TEMP_DIR: string;
-        COLORS: {
-            DANGER: number;
-            [key: string]: number;
-        };
+        SUCCESS_EMOJI: typeof SUCCESS_EMOJI;
+        FAIL_EMOJI: typeof FAIL_EMOJI;
+        WARNING_EMOJI: typeof WARNING_EMOJI;
+        DELETE_EMOJI: typeof DELETE_EMOJI;
+        COMMAND_PREFIX: string | ((guildID?: string) => Promise<string>);
+        ARGUMENT_REGEX: typeof ARGUMENT_REGEX;
+        BOT_ICON: typeof BOT_ICON;
+        BOT_AUTHOR: typeof BOT_AUTHOR;
+        TEMP_DIR: typeof TEMP_DIR;
+        COLORS: typeof COLORS;
         ERROR_RENDER_FORMAT: ErrorFormat;
-        ROLES: RoleOptions;
-        ERROR_PREFIX: string;
+        ERROR_PREFIX: typeof ERROR_PREFIX;
     }
 
     /**

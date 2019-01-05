@@ -1,5 +1,5 @@
 import { GuildMember } from "discord.js";
-import { AccessLevel, Commands } from "..";
+import { Commands } from "..";
 import { CommandUtils } from "../commands";
 
 export const Essentials: Commands = {
@@ -11,18 +11,19 @@ export const Essentials: Commands = {
             opts: {
                 name: "sudo",
                 node: "su.sudo",
-                access: AccessLevel.ROOT,
                 usage: {
                     description: "Perform commands on the behalf of another member",
                     args: [
                         {
                             type: "member",
                             name: "target",
+                            description: "The person to act on the behalf of",
                             required: true
                         },
                         {
                             type: "string",
                             name: "command",
+                            description: "The command to run",
                             required: true,
                             unlimited: true
                         }

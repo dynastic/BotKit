@@ -29,6 +29,4 @@ export declare class PermissionSetEntity extends DBEntity implements PermissionS
     reset(node: string);
 }
 
-export type PermissionSetEntityStub = typeof PermissionSetEntity & {
-    isNameFree(name: string, guild: string): Promise<Boolean>;
-}
+export type PermissionSetEntityStub = typeof PermissionSetEntity;

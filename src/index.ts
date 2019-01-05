@@ -1,9 +1,8 @@
-import { Client } from "discord.js";
-import CommandSystem, { PermissionSetEntityStub } from "./commands";
+import { Client, Message } from "discord.js";
+import CommandSystem, { PermissionSetEntityStub, CommandHandler } from "./commands";
 import { Context } from "./commands/commands";
 import BKConstants from "./Constants";
 import "./node-additions";
-import "./override";
 
 
 export interface RoleOptions {
@@ -33,15 +32,11 @@ export interface ApplicationOptions<T extends PermissionSetEntityStub> {
     /**
      * message prefix for commands
      */
-    COMMAND_PREFIX?: string;
+    commandPrefix?: typeof Constants['COMMAND_PREFIX'];
     /**
      * whether to render errors in plaintext or embeds
      */
-    ERROR_RENDER_FORMAT?: BKConstants.ErrorFormat;
-    /**
-     * permission roles
-     */
-    ROLES?: RoleOptions;
+    errorFormat?: BKConstants.ErrorFormat;
     /**
      * Commands to exclude from bot loading
      */
@@ -59,6 +54,10 @@ export interface ApplicationOptions<T extends PermissionSetEntityStub> {
      */
     superuserCheck?: (id: string) => boolean;
     /**
+     * The global guards to use
+     */
+    globalGuards?: CommandHandler[];
+    /**
      * Advanced overrides. Do not modify things without knowing what they do.
      */
     overrides?: {
@@ -68,7 +67,8 @@ export interface ApplicationOptions<T extends PermissionSetEntityStub> {
                 superuserPermissions?: false;
             }
         }
-    }
+    };
+    hooks?: CommandSystem["options"]["hooks"];
 }
 
 /**
@@ -80,9 +80,8 @@ export class Application<T extends PermissionSetEntityStub = PermissionSetEntity
 
     public constructor(public options: ApplicationOptions<T>) {
         BKConstants.applyPatches({
-            COMMAND_PREFIX: options.COMMAND_PREFIX,
-            ERROR_RENDER_FORMAT: options.ERROR_RENDER_FORMAT,
-            ROLES: options.ROLES
+            COMMAND_PREFIX: options.commandPrefix,
+            ERROR_RENDER_FORMAT: options.errorFormat
         });
     }
 
@@ -96,7 +95,14 @@ export class Application<T extends PermissionSetEntityStub = PermissionSetEntity
             await this.client.login(this.options.token);
         }
 
-        (this as any).commandSystem = new CommandSystem({ directory: this.options.commandDirectory, app: this, preloadExclude: this.options.preloadExclude, automaticCategoryNames: this.options.automaticCategoryNames });
+        (this as any).commandSystem = new CommandSystem({
+            directory: this.options.commandDirectory,
+            app: this,
+            preloadExclude: this.options.preloadExclude,
+            automaticCategoryNames: this.options.automaticCategoryNames,
+            globalGuards: this.options.globalGuards,
+            hooks: this.options.hooks
+        });
         await this.commandSystem.init();
     }
 }

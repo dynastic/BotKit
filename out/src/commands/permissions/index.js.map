@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["src/commands/permissions/index.ts"],"names":[],"mappings":";;;;;AAAA,6BAAwB;AACxB,4BAAuB","sourcesContent":["export * from \"./types\";\nexport * from \"./util\";\n"]}

@@ -1,1 +1,0 @@
-{"version":3,"file":"override.js","sourceRoot":"./src/","sources":["override.ts"],"names":[],"mappings":"","sourcesContent":["import Application from \".\";\nimport { PermissionSetEntityStub } from \"./commands\";\n\ndeclare module \"discord.js\" {\n    export interface Client {\n        botkit: Application<PermissionSetEntityStub>;\n    }\n}"]}

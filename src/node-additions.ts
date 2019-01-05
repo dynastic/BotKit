@@ -9,6 +9,7 @@ String.prototype.capitalize = function() {
 declare interface Array<T> {
     insert(startIndex: number, items: T[]): this;
     remove(o: T): T[];
+    random(): T;
 }
 
 Array.prototype.insert = function(index, items) {
@@ -27,4 +28,8 @@ Array.prototype.remove = function(o) {
     this.splice(index, 1);
 
     return this;
+};
+
+Array.prototype.random = function() {
+    return this[Math.floor(Math.random() * this.length)];
 }

@@ -4,17 +4,17 @@ import path from "path";
 import Constants from "../Constants";
 import "./api";
 import { CommandError } from "./errors";
-import { Argumented, ArgumentSDK, ArgumentType } from "./guards/arguments";
-
-
-export enum AccessLevel {
-    EVERYONE = "global",
-    MODERATOR = "moderator",
-    ADMIN = "admin",
-    ROOT = "root"
-}
+import { Argumented, ArgumentSDK, ArgumentType } from "./guards/internal/arguments";
+import { Environment, EnvironmentGuard } from "./guards/internal/environment";
+import { ExtraPermissionString, BotPermissions } from "./guards/internal/bot-permisisons";
+import Application from "..";
+import { PermissionSetEntityStub } from "./permissions";
 
 declare module 'discord.js' {
+    export interface Client {
+        botkit: Application<PermissionSetEntityStub>;
+    }
+
     interface GuildMember {
         /**
          * Whether this member has access to the given command
@@ -105,7 +105,40 @@ declare module 'discord.js' {
          * @private
          */
         setup(data: any);
+        /**
+         * The command prefix for this message.
+         */
+        commandPrefix: string;
+        /**
+         * Metrics object with various timings
+         */
+        metrics: Metrics;
     }
+}
+
+export interface Metrics {
+    /**
+     * time the execution began
+     */
+    start: number;
+    /**
+     * time the preprocessing execution stopped
+     * start is start
+     */
+    finishedPreprocessingTime: number;
+    /**
+     * time the guard/middleware processing completed
+     * start is finished preprocessing
+     */
+    finishedGuardProcessingTime: number;
+    /**
+     * time the execution has stopped
+     * start is start
+     * 
+     * (this is generally unavailable as there is not much left running at end of execution)
+     */
+    finishedExecutionTime: number;
+    [key: string]: number;
 }
 
 export interface CommandHandler {
@@ -113,15 +146,16 @@ export interface CommandHandler {
 }
 
 export interface CommandOptions {
-    access?: AccessLevel;
     guards?: CommandHandler[];
     category?: string;
+    environments?: Environment[];
+    botPermissions?: ExtraPermissionString[];
+    node?: string;
 }
 
 export interface Command {
     opts: {
         name: string;
-        node?: string;
         enabled?: boolean;
         aliases?: string[];
         /**
@@ -136,55 +170,6 @@ export interface Command {
     handler: CommandHandler;
 }
 
-export class CommandBuilder {
-    private command: Partial<Command> = {};
-
-    public name(name: string) {
-        this.opts.name = name;
-        return this;
-    }
-
-    public enabled(enabled: boolean) {
-        this.opts.enabled = enabled;
-        return this;
-    }
-
-    public alias(alias: string | string[]) {
-        this.opts.aliases = (this.opts.aliases || (this.opts.aliases = [])).concat(alias);
-        return this;
-    }
-
-    public data(key: string, value: any) {
-        (this.opts.data || (this.opts.data = {}))[key] = value;
-        return this;
-    }
-
-    public access(access: AccessLevel) {
-        this.opts.access = access;
-        return this;
-    }
-
-    public guard(guard: CommandHandler | CommandHandler[]) {
-        this.opts.guards = (this.opts.guards || (this.opts.guards = [])).concat(guard);
-    }
-
-    public category(category: string) {
-        this.opts.category = category;
-    }
-
-    public handler(handler: CommandHandler) {
-        this.command.handler = handler;
-    }
-
-    private get opts(): {name?: string, enabled?: boolean, aliases?: string[], data?: {[key: string]: any}} & CommandOptions {
-        return this.command.opts || (this.command.opts = {} as any);
-    }
-
-    public get built(): Command {
-        return this.command as any;
-    }
-}
-
 export interface Commands {
     opts?: CommandOptions;
     commands: Array<Command | Commands>;
@@ -193,8 +178,7 @@ export interface Commands {
 export namespace CommandUtils {
     export function isCommandOptions(options: any): options is CommandOptions {
         return typeof options === "undefined" ? true :
-            (typeof options.access === "undefined" || typeof options.access === "number") &&
-            (typeof options.guards === "undefined" || (Array.isArray(options.guards) && (options.guards as any[]).every(guard => typeof guard === "function")))
+            (typeof options.guards === "undefined" || (Array.isArray(options.guards) && (options.guards as any[]).every(guard => typeof guard === "function")));
     }
     
     export function isCommand(command: any): command is Command {
@@ -229,20 +213,27 @@ export namespace CommandUtils {
                 continue;
             }
 
-            const {guards, access, category} = opts;
+            const {guards, category, environments, botPermissions, node} = opts;
 
             // guards have a hierarchy
             if (guards) {
                 command.opts.guards = guards.concat(command.opts.guards || []);
             }
 
-            // commands inherit access levels if they don't have one defined
-            if (access && !command.opts.access) {
-                command.opts.access = access;
-            }
-
             if (typeof category === "string" && typeof command.opts.category === "undefined") {
                 command.opts.category = category;
+            }
+
+            if (environments && !command.opts.environments) {
+                command.opts.environments = environments;
+            }
+
+            if (node) {
+                if (command.opts.node) {
+                    command.opts.node = `${node}.${command.opts.node}`;
+                } else {
+                    command.opts.node = node;
+                }
             }
 
             if (isCommand(command)) {
@@ -288,6 +279,12 @@ export namespace CommandUtils {
         commands.forEach(command => {
             if (command.opts.usage) {
                 (command.opts.guards || (command.opts.guards = [])).unshift(Argumented(command));
+            }
+            if (command.opts.botPermissions) {
+                (command.opts.guards || (command.opts.guards = [])).unshift(BotPermissions(...command.opts.botPermissions as any));
+            }
+            if (command.opts.environments) {
+                (command.opts.guards || (command.opts.guards = [])).unshift(EnvironmentGuard(command.opts.environments));
             }
         });
     }
@@ -345,6 +342,7 @@ export namespace CommandUtils {
         return new Promise((resolve, reject) => {
             let idx = -1;
             const next = async (err?: any) => {
+                message.metrics.finishedGuardProcessingTime = Date.now();
                 if (err) {
                     // send error down the chain
                     return reject(err);
@@ -393,7 +391,7 @@ export namespace CommandUtils {
             return baseMessage;
         }
     
-        command = `${Constants.COMMAND_PREFIX}${command}`;
+        command = `${baseMessage.commandPrefix}${command}`;
     
         baseMessage = new Message(baseMessage.channel, { ...baseMessage.__data, author: user}, baseMessage.client);
     

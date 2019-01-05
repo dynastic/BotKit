@@ -2,10 +2,9 @@
 
 import { Collection, Guild, GuildMember, Message, MessageOptions, RichEmbed, User } from 'discord.js';
 import Constants from '../Constants';
-import { calculateInclusiveRoles } from '../util';
 import { CommandError } from './errors';
 import { PermissionsAPI } from './permissions';
-import { AccessLevel, CommandUtils } from './util';
+import { CommandUtils } from './util';
 
 
 const mentionRegex = /⦗<@\d+>⦘/g;
@@ -77,66 +76,55 @@ Message.prototype.data = {};
 const oldSetup = Message.prototype.setup;
 Message.prototype.setup = function(data) {
     this.__data = data;
+    // start metrics
+    this.metrics = {
+        start: Date.now(),
+        finishedPreprocessingTime: NaN,
+        finishedGuardProcessingTime: NaN,
+        finishedExecutionTime: NaN
+    };
     return oldSetup.call(this, data);
 }
 
-GuildMember.prototype.hasAccess = async function(this: GuildMember, commandName: string | AccessLevel) {
+GuildMember.prototype.hasAccess = async function(this: GuildMember, commandName: string) {
     const command = this.client.botkit.commandSystem.commands[commandName];
 
     if (!command) return false;
 
-    const verify = async (role: "moderator" | "admin" | "root") => {
-        const ROLES_INCLUSIVE = calculateInclusiveRoles();
+    const { roles, id } = this;
 
-        if (ROLES_INCLUSIVE[role].includes(this.id)) return true;
-        for (let [,{id}] of this.roles) {
-            if (ROLES_INCLUSIVE[role].includes(id)) return true;
-        }
-        const { roles, id } = this;
-
-        if (this.client.botkit.options.superuserCheck) {
-            if (this.client.botkit.options.superuserCheck(id)) {
-                return true;
-            }
-        }
-
-        const PermissionsEntity = await this.client.botkit.options.permissionsEntity;
-        if (PermissionsEntity && command.opts.node) {
-
-            const roleIDs = roles.map(r => r.id);
-
-            const entities = await PermissionsEntity.createQueryBuilder("set")
-                .where("set.roles @> :roleIDs", { roleIDs })
-                .orWhere("set.members @> :id", { id: [id] })
-                .getMany();
-
-            // create a composite set of all of the permission sets
-            const set = await PermissionsAPI.compositePermissionSet(entities);
-
-            if (PermissionsAPI.nodeSatisfiesSet(command.opts.node, set)) {
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    const access = command.opts.access || AccessLevel.EVERYONE;
-    switch (access) {
-        case AccessLevel.EVERYONE:
+    if (this.client.botkit.options.superuserCheck) {
+        if (this.client.botkit.options.superuserCheck(id)) {
             return true;
-        default:
-            return await verify(access);
+        }
     }
+
+    const PermissionsEntity = await this.client.botkit.options.permissionsEntity;
+    if (PermissionsEntity && command.opts.node) {
+
+        const roleIDs = roles.map(r => r.id);
+
+        const entities = await PermissionsEntity.createQueryBuilder("set")
+            .where("set.roles @> :roleIDs", { roleIDs })
+            .orWhere("set.members @> :id", { id: [id] })
+            .getMany();
+
+        // create a composite set of all of the permission sets
+        const set = await PermissionsAPI.compositePermissionSet(entities);
+
+        if (PermissionsAPI.nodeSatisfiesSet(command.opts.node, set)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 User.prototype.hasAccess = async function(this: User, commandName: string) {
     const command = this.client.botkit.commandSystem.commands[commandName];
     if (!command) return false;
 
-    let access = command.opts.access || AccessLevel.EVERYONE;
-
-    return access === AccessLevel.EVERYONE || !!(this.client.botkit.options.superuserCheck && this.client.botkit.options.superuserCheck(this.id));
+    return !!(this.client.botkit.options.superuserCheck && this.client.botkit.options.superuserCheck(this.id));
 }
 
 User.prototype.guilds = async function(this: User) {
