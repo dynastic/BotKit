@@ -43,6 +43,7 @@
     "node_modules",
     "out",
     "ormconfig.js",
+    "test",
     "tests"
   ]
 }

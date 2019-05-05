@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sourceRoot":"./src/","sources":["commands/guards/index.ts"],"names":[],"mappings":";;AAAA,6CAA8C;AAArC,sCAAA,aAAa,CAAA","sourcesContent":["export { PermSetLoader } from \"./permissions\";\n"]}

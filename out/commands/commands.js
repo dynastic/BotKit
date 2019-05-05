@@ -1,10 +1,12 @@
-import { Client, Guild, Message, RichEmbed, TextChannel, User } from 'discord.js';
-import util from 'util';
-import { Application } from '..';
-import { CommandError } from './errors';
-import { Command } from './util';
-
-export const HelpCommand: Command = {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = require("discord.js");
+const util_1 = __importDefault(require("util"));
+const errors_1 = require("./errors");
+exports.HelpCommand = {
     opts: {
         name: "help",
         usage: {
@@ -21,67 +23,58 @@ export const HelpCommand: Command = {
     },
     handler: async (message, next) => {
         const [specificCommand] = message.args;
-
         // command manpage
         if (specificCommand) {
-            const command = message.client.botkit.commandSystem.commands[specificCommand as string];
+            const command = message.client.botkit.commandSystem.commands[specificCommand];
             if (!command) {
-                return next(new CommandError({ message: "That command does not exist." }));
+                return next(new errors_1.CommandError({ message: "That command does not exist." }));
             }
             const { usage } = command.opts;
             if (!usage) {
-                return next(new CommandError({ message: "There's no additional help data for this command." }));
+                return next(new errors_1.CommandError({ message: "There's no additional help data for this command." }));
             }
-            const { description, syntax } = <any>usage as { [key: string]: string };
-            const embed = new RichEmbed();
+            const { description, syntax } = usage;
+            const embed = new discord_js_1.RichEmbed();
             embed.setTitle(`Information about \`${command.opts.name}\``);
-            if (description) embed.setDescription(description);
-            if (syntax) embed.addField("Syntax", `\`${message.commandPrefix}${syntax}\``);
-            
+            if (description)
+                embed.setDescription(description);
+            if (syntax)
+                embed.addField("Syntax", `\`${message.commandPrefix}${syntax}\``);
             if (usage.args) {
                 usage.args.forEach((arg, i) => {
                     if (!arg) {
                         return;
                     }
-
                     const title = arg.name.capitalize();
                     const body = arg.description || "(no description)";
-
                     embed.addField(title, body);
                 });
             }
             await message.reply(embed);
             return;
         }
-
-        const commands: { [category: string]: string[] } = {};
+        const commands = {};
         const loadedCommands = message.client.botkit.commandSystem.commands;
-
         for (let commandName in loadedCommands) {
-            if (!(await (message.member || message.author).hasAccess(commandName))) continue;
+            if (!(await (message.member || message.author).hasAccess(commandName)))
+                continue;
             const command = loadedCommands[commandName];
-            if (!command) continue;
+            if (!command)
+                continue;
             const category = command.opts.category || "General";
             (commands[category] || (commands[category] = [])).push(`• \`${message.commandPrefix}${command.opts.name}\``);
         }
-
-        const helpEmbed = new RichEmbed();
-
+        const helpEmbed = new discord_js_1.RichEmbed();
         for (let category in commands) {
             const commandList = commands[category].join("\n");
-
             helpEmbed.addField(`${category}:`, commandList, true);
         }
-
         helpEmbed.setTitle("Available Commands");
-
         message.reply("", { embed: helpEmbed });
     }
 };
-
 const pingSuffix = () => ['?', '!', '?!', '!?', '?!?', '!?!', '!!?', '?!!', '!?!'].random();
-
-export const PingCommand: Command = {
+exports.PingCommand = {
     opts: {
         name: "ping",
         category: "Diagnostics",
@@ -91,43 +84,25 @@ export const PingCommand: Command = {
     },
     handler: async (message, next) => {
         const startTime = Date.now();
-
-        const embed = new RichEmbed();
+        const embed = new discord_js_1.RichEmbed();
         embed.setTitle(`Ping${pingSuffix()} Ping${pingSuffix()} Ping${pingSuffix()}`);
         embed.setDescription(`Ping${pingSuffix()}`);
-
-        let msg: Message;
+        let msg;
         const reloadVariables = () => {
             embed.fields = [];
-
             const startToNow = Date.now() - message.metrics.start;
-
             embed.addField(`Command runtime duration  `, `${startToNow}ms`, true);
-            if (msg) embed.addField(`Message ponged in`, `${msg.createdTimestamp - startTime}ms`, true);
-        }
+            if (msg)
+                embed.addField(`Message ponged in`, `${msg.createdTimestamp - startTime}ms`, true);
+        };
         reloadVariables();
-
-        msg = await message.channel.send(embed) as Message;
-
+        msg = await message.channel.send(embed);
         reloadVariables();
         embed.setDescription("***PONG.***");
-
         await msg.edit(embed);
     }
 };
-
-export interface Context {
-    message: Message;
-    app: Application;
-    args: string[];
-    author: User;
-    channel: TextChannel;
-    guild: Guild;
-    client: Client;
-    [key: string]: any;
-}
-
-export const EvalCommand: Command = {
+exports.EvalCommand = {
     opts: {
         name: "eval",
         category: "Diagnostics",
@@ -146,41 +121,38 @@ export const EvalCommand: Command = {
         }
     },
     handler: async (message, next) => {
-        let context: Context = {
+        let context = {
             message,
             app: message.client.botkit,
-            args: message.args as any[],
+            args: message.args,
             author: message.author,
-            channel: message.channel as any,
+            channel: message.channel,
             guild: message.guild,
             client: message.client
         };
-
         if (message.client.botkit.options.contextPopulator) {
             context = message.client.botkit.options.contextPopulator(context);
         }
-
         let res;
         try {
             res = eval(message.args.join(" "));
-        } catch (e) {
+        }
+        catch (e) {
             res = e;
         }
-
-        const getResult = () => "Result\n```js\n" + util.inspect(res, false, 0) + "\n```";
-
+        const getResult = () => "Result\n```js\n" + util_1.default.inspect(res, false, 0) + "\n```";
         if (res instanceof Promise) {
-            const response = await message.reply("Promise Pending...") as Message;
+            const response = await message.reply("Promise Pending...");
             try {
                 res = await res;
-            } catch (e) {
+            }
+            catch (e) {
                 res = e;
             }
-
             await response.edit(getResult());
             return;
         }
-
         await message.reply(getResult());
     }
 };
+//# sourceMappingURL=commands.js.map

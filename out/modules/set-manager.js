@@ -1,44 +1,34 @@
-import { GuildMember, RichEmbed, Role } from "discord.js";
-import { Command, CommandError, Commands, PermissionsAPI, PermissionSet, PermissionSetEntity } from "..";
-import { CommandUtils } from "../commands";
-import { PermSetLoader } from "../commands/guards";
-
-interface PermSetContainer { permSet: PermissionSetEntity }
-
-const fallbackStr = (str1: string, str2: string) => str1.trim().length > 0 ? str1 : str2;
-
-const createPermissionDepictionEmbed = (sets: PermissionSetEntity | PermissionSetEntity[], target: Role | GuildMember) => {
-    let set: PermissionSet;
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const discord_js_1 = require("discord.js");
+const __1 = require("..");
+const commands_1 = require("../commands");
+const guards_1 = require("../commands/guards");
+const fallbackStr = (str1, str2) => str1.trim().length > 0 ? str1 : str2;
+const createPermissionDepictionEmbed = (sets, target) => {
+    let set;
     if (Array.isArray(sets)) {
-        set = PermissionsAPI.compositePermissionSet(sets);
-    } else {
+        set = __1.PermissionsAPI.compositePermissionSet(sets);
+    }
+    else {
         set = sets[0];
     }
-
-    const embed = new RichEmbed();
-
-    if (target instanceof GuildMember) {
+    const embed = new discord_js_1.RichEmbed();
+    if (target instanceof discord_js_1.GuildMember) {
         const superuser = target.client.botkit.options.superuserCheck && target.client.botkit.options.superuserCheck(target.id);
         embed.addField("Superuser", !!superuser, true);
     }
-
     if (Array.isArray(sets)) {
         const setList = sets.map(subset => `\`${subset.name}\``).join("\n");
-
         embed.addField("Set List", fallbackStr(setList, "None"), false);
     }
-
     const grantList = set.grantedPermissions.map(perm => `\`${perm}\``).join("\n");
     const negateList = set.negatedPermissions.map(perm => `\`${perm}\``).join("\n");
-
     embed.addField("Granted Permissions", fallbackStr(grantList, "None"), true);
     embed.addField("Negated Permissions", fallbackStr(negateList, "None"), true);
-
     return embed;
-}
-
-const MemberRoleListGenerator: (type: "members" | "roles") => Command = type => ({
+};
+const MemberRoleListGenerator = type => ({
     opts: {
         name: `get-${type}`,
         node: "perm.read",
@@ -54,24 +44,20 @@ const MemberRoleListGenerator: (type: "members" | "roles") => Command = type => 
             ]
         },
         guards: [
-            PermSetLoader
+            guards_1.PermSetLoader
         ]
     },
-    handler: async message => {
-        const permSet: PermissionSetEntity = message.data.permSet;
-
+    handler: async (message) => {
+        const permSet = message.data.permSet;
         const targetList = permSet[type].map(id => `<@${type === "roles" ? '&' : ''}${id}>`).join("\n");
-
-        const embed = new RichEmbed();
+        const embed = new discord_js_1.RichEmbed();
         embed.setTitle("Permissions Query Report");
         embed.addField("Permission Set", `\`${permSet.name}\``, false);
-        embed.addField(`${type === "members" ? "User" : type === "roles" ? "Role" : (type as string).capitalize()} List`, fallbackStr(targetList, "None"), false);
-
+        embed.addField(`${type === "members" ? "User" : type === "roles" ? "Role" : type.capitalize()} List`, fallbackStr(targetList, "None"), false);
         await message.reply(embed);
     }
 });
-
-const PermissionStateGenerator: (action: "add" | "del") => Command = action => ({
+const PermissionStateGenerator = action => ({
     opts: {
         name: `${action}-permission`,
         node: "perm.write",
@@ -94,45 +80,41 @@ const PermissionStateGenerator: (action: "add" | "del") => Command = action => (
             ]
         },
         guards: [
-            PermSetLoader
+            guards_1.PermSetLoader
         ]
     },
-    handler: async message => {
-        const [, ...permissions] = message.args as string[];
-
-        const { permSet } = message.data as PermSetContainer;
-
+    handler: async (message) => {
+        const [, ...permissions] = message.args;
+        const { permSet } = message.data;
         console.log(permissions);
-
         permissions.forEach(permission => {
-            let targetNegated: boolean = false;
-
+            let targetNegated = false;
             if (permission.startsWith("-") || permission.startsWith("!")) {
                 targetNegated = true;
                 permission = permission.substring(1);
             }
-
             if (action === "add") {
                 if (targetNegated) {
                     permSet.negate(permission);
-                } else {
+                }
+                else {
                     permSet.grant(permission);
                 }
-            } else {
+            }
+            else {
                 if (targetNegated) {
                     permSet.negatedPermissions.remove(permission);
-                } else {
+                }
+                else {
                     permSet.grantedPermissions.remove(permission);
                 }
             }
         });
-
         await permSet.save();
         await message.success();
     }
-})
-
-const membershipStateGenerator: (type: "member" | "role", mode: "add" | "del") => Command = (type, mode) => ({
+});
+const membershipStateGenerator = (type, mode) => ({
     opts: {
         // manuadd
         // manudel
@@ -159,23 +141,19 @@ const membershipStateGenerator: (type: "member" | "role", mode: "add" | "del") =
             ]
         },
         guards: [
-            PermSetLoader
+            guards_1.PermSetLoader
         ]
     },
     handler: async (message) => {
-        let ids = message.args.slice(1) as Array<GuildMember | Role>;
-        ids = ids.filter((id: null | { id: string }) => id !== null && id.id);
-        const { permSet } = message.data as PermSetContainer;
-
+        let ids = message.args.slice(1);
+        ids = ids.filter((id) => id !== null && id.id);
+        const { permSet } = message.data;
         await Promise.all(ids.map(({ id }) => permSet[mode + "Target"](type, id)));
-
         await permSet.save();
-
         await message.success();
     }
-})
-
-export const SetManager: Commands = {
+});
+exports.SetManager = {
     opts: {
         category: "Set Manager",
         environments: ['text']
@@ -197,19 +175,17 @@ export const SetManager: Commands = {
                     ]
                 },
                 guards: [
-                    PermSetLoader
+                    guards_1.PermSetLoader
                 ]
             },
             handler: async (message, next) => {
-                const permSet: PermissionSetEntity = message.data.permSet;
-
-                const embed = new RichEmbed();
+                const permSet = message.data.permSet;
+                const embed = new discord_js_1.RichEmbed();
                 embed.addField("Name", permSet.name, false);
                 embed.addField("Roles", fallbackStr(permSet.roles.map(id => `<@&${id}>`).join("\n"), "None"), true);
                 embed.addField("Members", fallbackStr(permSet.members.map(id => `<@${id}>`).join("\n"), "None"), true);
                 embed.addField("Granted Permissions", fallbackStr(permSet.grantedPermissions.map(perm => `\`${perm}\``).join("\n"), "None"), false);
                 embed.addField("Negated Permissions", fallbackStr(permSet.negatedPermissions.map(perm => `\`${perm}\``).join("\n"), "None"), false);
-
                 await message.reply(embed);
             }
         },
@@ -229,37 +205,33 @@ export const SetManager: Commands = {
                     ]
                 },
                 guards: [
-                    PermSetLoader
+                    guards_1.PermSetLoader
                 ]
             },
             handler: async (message, next) => {
-                const [name] = message.args as string[];
-
-                const { permSet } = message.data as PermSetContainer;
-
+                const [name] = message.args;
+                const { permSet } = message.data;
                 if (permSet) {
-                    return next(new CommandError({
+                    return next(new __1.CommandError({
                         message: "A permission set already exists with that name. Please choose another one or delete that permission set.",
                         title: "Naming Conflict"
-                    }))
+                    }));
                 }
-
-                await message.client.botkit.options.permissionsEntity!.create({
+                await message.client.botkit.options.permissionsEntity.create({
                     name,
                     guild: message.guild.id,
                     roles: [],
                     members: [],
                     grantedPermissions: [],
                     negatedPermissions: []
-                })
-
+                });
                 // depict the permission set we just made
-                const reply = await CommandUtils.runCommand(message, `mansget ${name}`);
-
+                const reply = await commands_1.CommandUtils.runCommand(message, `mansget ${name}`);
                 if (reply.reply) {
                     await message.reply(...reply.reply);
-                } else {
-                    return next(new CommandError({
+                }
+                else {
+                    return next(new __1.CommandError({
                         message: "An error occurred while making the permission set.",
                         title: "Unknown Error"
                     }));
@@ -272,16 +244,12 @@ export const SetManager: Commands = {
                 node: "perm.read"
             },
             handler: async (message, next) => {
-                const sets = await message.client.botkit.options.permissionsEntity!.find({ guild: message.guild.id });
-
+                const sets = await message.client.botkit.options.permissionsEntity.find({ guild: message.guild.id });
                 const setList = sets.map(set => `\`${set.name}\``).sort().join("\n");
-
-                const embed = new RichEmbed();
-
+                const embed = new discord_js_1.RichEmbed();
                 embed.addField("Guild", `${message.guild.name} (${message.guild.id})`);
                 embed.addField("Permission Sets", fallbackStr(setList, "None"));
                 embed.setTitle("Permission Set Overview");
-
                 await message.reply(embed);
             }
         },
@@ -303,10 +271,8 @@ export const SetManager: Commands = {
                 }
             },
             handler: async (message, next) => {
-                const permSetNames = message.args as string[];
-                
-                await Promise.all(permSetNames.map(name => message.client.botkit.options.permissionsEntity!.findOne({name, guild: message.guild.id})).map(permSet => permSet.then(set => set as any && set!.remove())));
-
+                const permSetNames = message.args;
+                await Promise.all(permSetNames.map(name => message.client.botkit.options.permissionsEntity.findOne({ name, guild: message.guild.id })).map(permSet => permSet.then(set => set && set.remove())));
                 await message.success();
             }
         },
@@ -327,16 +293,13 @@ export const SetManager: Commands = {
                 }
             },
             handler: async (message, next) => {
-                const [member] = message.args as GuildMember[];
-
-                const sets = await message.client.botkit.options.permissionsEntity!.createQueryBuilder()
-                                .where("members @> :member", { member: [member.id] })
-                                .andWhere("guild = :guild", { guild: message.guild.id })
-                                .getMany();
-
+                const [member] = message.args;
+                const sets = await message.client.botkit.options.permissionsEntity.createQueryBuilder()
+                    .where("members @> :member", { member: [member.id] })
+                    .andWhere("guild = :guild", { guild: message.guild.id })
+                    .getMany();
                 const embed = createPermissionDepictionEmbed(sets, member);
                 embed.setTitle("Member Permissions Profile");
-
                 await message.reply(embed);
             }
         },
@@ -361,15 +324,12 @@ export const SetManager: Commands = {
                 }
             },
             handler: async (message, next) => {
-                const [role] = message.args as Role[];
-
-                const sets = await message.client.botkit.options.permissionsEntity!.createQueryBuilder()
-                                .where("roles @> :roles", { roles: [role.id] })
-                                .getMany();
-
+                const [role] = message.args;
+                const sets = await message.client.botkit.options.permissionsEntity.createQueryBuilder()
+                    .where("roles @> :roles", { roles: [role.id] })
+                    .getMany();
                 const embed = createPermissionDepictionEmbed(sets, role);
                 embed.setTitle("Role Permissions Profile");
-
                 await message.reply(embed);
             }
         },
@@ -386,4 +346,5 @@ export const SetManager: Commands = {
         // manpdel
         PermissionStateGenerator("del")
     ]
-}
+};
+//# sourceMappingURL=set-manager.js.map
